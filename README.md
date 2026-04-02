@@ -40,71 +40,243 @@ npx skills add xindoo/sumeru
 ## 📖 快速开始
 
 ### 全流程创作（推荐）
-直接启动完整创作流程，系统会自动引导你完成所有环节：
+直接启动完整创作流程，系统会自动引导你完成所有环节，自动协调选题→大纲→写作→审查→润色→导出全流程：
 ```bash
-/worldbuilder <题材类型> "<核心创意关键词>"
+/worldbuilder <题材类型> "<核心创意关键词>" [参数]
 ```
 
-示例：
+**核心参数说明：**
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `--title` | 自定义小说名称 | `--title "重生之互联网大亨"` |
+| `--length` | 预期篇幅 | `--length 长篇/中篇/短篇` |
+| `--style` | 写作风格 | `--style 小白爽文/精品文/古风` |
+| `--tone` | 整体调性 | `--tone 轻松/严肃/搞笑` |
+| `--resume` | 中断后恢复创作 | `--resume` |
+| `--skip-stages` | 跳过指定环节 | `--skip-stages review,polish` |
+| `--auto-confirm` | 自动确认所有选择，无需人工干预 | `--auto-confirm` |
+
+**示例：**
 ```bash
+# 基础用法
 /worldbuilder 玄幻 "废柴逆袭+系统流+穿越"
 /worldbuilder 都市 "重生+投资+创业"
 /worldbuilder 言情 "穿越+宫斗+甜宠"
+
+# 带高级参数的完整用法
+/worldbuilder 都市 "重生2000年+互联网创业+商战" --title "重生之网络帝国" --length 长篇 --style 精品文 --auto-confirm
+/worldbuilder 科幻 "星际冒险+机甲+无限流" --resume --skip-stages topic # 恢复之前的科幻题材创作，跳过选题环节
 ```
 
 ### 独立功能调用
-你也可以单独调用任意环节的Skill：
+你也可以单独调用任意环节的Skill，灵活组合使用：
 
-#### 1. 选题策划
-生成多套选题方案与市场分析：
+---
+
+#### 1. 选题策划 Skill
+**适用场景**：不知道写什么、想找热门题材、需要市场可行性分析
+**功能**：基于主流平台榜单数据分析，生成3-5套差异化选题方案，包含金手指设计、核心卖点、爽点模式，以及市场热度、竞争格局、变现潜力等多维度评估。
+
 ```bash
-/topic <题材类型> "<核心关键词>"
+/topic <题材类型> "<核心关键词>" [参数]
+```
+
+**核心参数说明：**
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `--platform` | 目标发布平台 | `--platform 起点/番茄/晋江/纵横` |
+| `--audience` | 目标受众 | `--audience 男频/女频/中性` |
+| `--length` | 预期篇幅 | `--length 长篇/中篇/短篇` |
+| `--load-existing` | 加载历史选题数据 | `--load-existing` |
+
+**示例：**
+```bash
+# 基础用法
 /topic 玄幻 "系统+签到+无敌" --platform=起点
 /topic 言情 "穿越+宫斗+甜宠" --audience=女频 --length=中篇
+
+# 更多实用场景
+/topic 都市 "异能+鉴宝+赘婿" --platform=番茄 --audience=男频 # 生成番茄男频都市异能选题
+/topic 悬疑 "无限流+密室逃脱+灵异" --audience=中性 --length=中篇 # 生成中性向悬疑中篇选题
+/topic --load-existing # 加载之前生成的选题，继续优化
 ```
 
-#### 2. 大纲设计
-生成完整世界观、人设、剧情大纲：
+---
+
+#### 2. 大纲设计 Skill
+**适用场景**：写小说大纲、设计人设、做世界观设定
+**功能**：生成完整世界观、人物设定卡、剧情框架、爽点排布规划，自动生成虚构名称避免侵权风险。
+
 ```bash
-/outline "<核心创意描述>"
-/outline "重生2000年靠互联网创业"
-/outline --load-from .sumeru/topic/options.json  # 复用已有选题数据
+/outline "<核心创意描述>" [参数]
 ```
 
-#### 3. 章节撰写
-生成/续写/重写章节内容：
+**核心参数说明：**
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `--load-from` | 复用已有选题数据 | `--load-from .sumeru/topic/options.json` |
+| `--allow-mapping` | 允许映射真实地名/事件（需自行合规审核） | `--allow-mapping` |
+| `--style` | 大纲风格 | `--style 详细/精简/分卷` |
+
+**示例：**
+```bash
+# 基础用法
+/outline "重生2000年靠互联网创业"
+/outline --load-from .sumeru/topic/options.json  # 复用选题阶段生成的创意
+
+# 更多实用场景
+/outline "高武世界+校花+系统+高考逆袭" --style 分卷 # 生成分卷式大纲
+/outline "古代权谋+皇子夺嫡+穿越" --allow-mapping # 允许映射真实历史背景
+/outline "星际文明+机甲战斗+虫族入侵" --load-from .sumeru/outline/draft.json # 复用之前的大纲草稿继续完善
+```
+
+---
+
+#### 3. 章节撰写 Skill
+**适用场景**：生成章节内容、续写、重写、批量创作
+**功能**：遵循网文黄金节奏结构，保持人物性格与剧情一致性，支持多Agent并行批量创作。
+
 ```bash
 /write <章节号> "<章节概要>" [参数]
-/write 第3章 "主角首次使用金手指震惊众人" --style xianxia --cool-face-slap --words 2500
-/write 第5章 --continue  # 续写已有内容
-/write 第1-100章 --parallel 5  # 批量并行创作
 ```
 
-#### 4. 逻辑审查
-校验剧情一致性、时间线、人物OOC等问题：
+**核心参数说明：**
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `--style` | 写作风格 | `--style xianxia/urban/historical` |
+| `--words` | 目标字数 | `--words 2000/3000` |
+| `--pace` | 节奏控制 | `--pace 快/中/慢` |
+| `--pov` | 视角 | `--pov 主角/配角/上帝视角` |
+| `--parallel` | 并行创作数量 | `--parallel 5` |
+| `--continue` | 续写已有内容 | `--continue` |
+| `--cool-face-slap` | 强化爽点/打脸情节 | `--cool-face-slap` |
+
+**示例：**
 ```bash
-/review <章节范围>
+# 基础用法
+/write 第3章 "主角首次使用金手指震惊众人" --style xianxia --cool-face-slap --words 2500
+/write 第5章 --continue  # 续写第4章之后的内容
+/write 第1-100章 --parallel 5  # 并行批量生成100章内容，同时启用5个Agent
+
+# 更多实用场景
+/write 第1章 "主角重生回到高考前一天" --style urban --pace 快 --words 2000 # 快节奏开篇
+/write 第20-30章 --pov 女配 --style historical # 从女配视角写10章内容
+/write 第15章 "拍卖会冲突" --cool-face-slap --words 3000 # 强化打脸爽点的章节
+```
+
+---
+
+#### 4. 逻辑审查 Skill
+**适用场景**：检查剧情bug、时间线错误、人物OOC、逻辑漏洞
+**功能**：校验时间线、剧情一致性、人物行为合理性、伏笔追踪，自动发现剧情矛盾和不合理之处。
+
+```bash
+/review <章节范围> [参数]
+```
+
+**核心参数说明：**
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `--all` | 审查全部章节 | `--all` |
+| `--only` | 仅检查指定问题类型 | `--only timeline,ooc,plot` |
+| `--dir` | 指定章节文件目录 | `--dir ./my-novel/chapters` |
+| `--enable-word-count` | 同时统计字数/节奏数据 | `--enable-word-count` |
+
+**支持检查的问题类型：**
+- `timeline`：时间线/年龄/事件顺序一致性
+- `ooc`：人物性格/行为OOC检查
+- `plot`：剧情逻辑/设定一致性
+- `foreshadow`：伏笔回收检查
+- `common`：常识/因果合理性检查
+
+**示例：**
+```bash
+# 基础用法
 /review 第1-50章
 /review --all  # 审查全部内容
-/review 第1-20章 --only timeline,ooc  # 仅检查指定问题类型
+/review 第1-20章 --only timeline,ooc  # 仅检查时间线和人物OOC问题
+
+# 更多实用场景
+/review 第30-80章 --only plot,foreshadow # 检查剧情矛盾和伏笔回收情况
+/review --all --dir ./old-novel/chapters --enable-word-count # 审查旧作品全本，同时输出节奏分析
+/review 第10-15章 --only common # 检查这几章的常识/逻辑合理性
 ```
 
-#### 5. 内容润色
-优化文笔、节奏、爽点等：
+---
+
+#### 5. 内容润色 Skill
+**适用场景**：优化文笔、调整节奏、强化爽点、统一风格
+**功能**：4级润色级别，支持多风格转换，针对性优化节奏、爽点、对话、悬念等。
+
 ```bash
 /polish <章节范围> [参数]
-/polish 第10章 --level 2 --style 小白爽文 --focus 爽点强化
-/polish 第1-3章 --light  # 轻度润色，保留原文风格
-/polish 第5章 --deep --focus 节奏收紧,对话优化
 ```
 
-#### 6. 完稿校验
-检查错误+导出平台适配格式：
+**核心参数说明：**
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `--level` | 润色级别（1-4） | `--level 2` |
+| `--light` | 轻度润色（仅纠错，保留原文风格） | `--light` |
+| `--deep` | 深度润色（重构结构/节奏） | `--deep` |
+| `--style` | 目标风格 | `--style 小白爽文/精品文/古风` |
+| `--focus` | 优化重点 | `--focus 爽点强化,节奏收紧,对话优化` |
+
+**润色级别说明：**
+- Level 1/轻度：仅修正错别字、标点、语法错误
+- Level 2/中度：优化表达，提升文笔，不改变原意
+- Level 3/深度：重构段落结构，调整节奏，强化爽点
+- Level 4/精细：逐字打磨，优化细节，提升整体质感
+
+**示例：**
+```bash
+# 基础用法
+/polish 第10章 --level 2 --style 小白爽文 --focus 爽点强化
+/polish 第1-3章 --light  # 轻度润色，保留原文风格
+/polish 第5章 --deep --focus 节奏收紧,对话优化 # 深度优化节奏和对话
+
+# 更多实用场景
+/polish 第1-20章 --style 古风 --focus 文笔提升 # 将前20章转为古风风格，提升文笔
+/polish 第35章 --deep --focus 悬念增强,爽点强化 # 深度优化章节悬念和爽点
+/polish 第1-100章 --level 1 # 全本仅修正错别字和标点，不修改内容
+```
+
+---
+
+#### 6. 完稿校验 Skill
+**适用场景**：完稿检查、敏感词检测、多平台格式导出
+**功能**：错别字/标点/语法错误修正，敏感内容检测，格式标准化，多平台格式导出。
+
 ```bash
 /finalize [参数]
+```
+
+**核心参数说明：**
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `--export` | 导出平台格式 | `--export qidian/tomato/jinjiang/all` |
+| `--replace` | 启用全局替换功能 | `--replace "旧词":"新词"` |
+| `--segment` | 自动分段优化（适配手机阅读） | `--segment` |
+| `--dir` | 指定源文件目录 | `--dir ./chapters` |
+| `--output-dir` | 指定导出目录 | `--output-dir ./publish` |
+
+**支持导出的平台：**
+- `qidian`：起点中文网格式
+- `tomato`：番茄小说格式
+- `jinjiang`：晋江文学城格式
+- `zongheng`：纵横中文网格式
+- `all`：导出全部平台格式
+
+**示例：**
+```bash
+# 基础用法
 /finalize --export qidian  # 导出起点平台格式
 /finalize --export all  # 导出全平台格式
-/finalize --replace --segment  # 批量替换+自动分段
+/finalize --replace --segment  # 批量替换+自动分段优化
+
+# 更多实用场景
+/finalize --export tomato --segment --output-dir ./tomato-publish # 导出番茄格式，自动分段
+/finalize --replace "张三":"李玄" "李四":"王虎" --dir ./chapters # 批量替换全文主角名称
+/finalize --export all --dir ./old-novel --output-dir ./old-novel/publish # 导出旧作品的全平台格式
 ```
 
 ## 💾 数据持久化
