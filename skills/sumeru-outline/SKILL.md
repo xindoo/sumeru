@@ -148,19 +148,18 @@ type: skill
 - `小说大纲_世界观设定.md`：完整世界观设定文档（直接可读）
 - `小说大纲_剧情框架.md`：主线+支线剧情大纲+分卷规划（直接可读）
 
-**中间数据（仅系统使用，存于`.sumeru/outline/`目录）**：
+**中间数据（仅系统内部使用，存于`.sumeru/outline/`目录）**：
+- `world.json`：世界观设定（JSON格式，供后续 skill 复用）
+- `characters.json`：结构化人物设定卡（JSON格式，供后续 skill 复用）
+- `chapters.json`：章节细纲数据（JSON格式，供后续 skill 复用）
 - `world.md`：世界观设定备份
 - `plot.md`：剧情大纲备份
-- `characters.json`：结构化人物设定卡（JSON格式，供后续skill复用）
-- `volume-plan.json`：分卷规划数据
-- `chapter-outline.json`：前N章细纲数据
-- `cool-point-map.json`：爽点排布规划图
 
-#### 数据复用
-- 创作阶段自动读取人设、章节细纲、爽点规划，保持剧情一致性
-- 支持导入其他作品的人物设定
-- 支持世界观复用，可单独导出世界观文件供系列作品使用
-- 逻辑审查阶段直接读取大纲数据校验剧情偏离度
+#### 与其他 Skill 配合
+- **前置 Skill**：可读取 `sumeru-topic` 的 `options.json`（使用 `--load-from` 参数）
+- **后续 Skill**：生成的数据可供 `sumeru-write`、`sumeru-review` 使用
+  - `sumeru-write` 自动读取人设、章节细纲、爽点规划，保持剧情一致性
+  - `sumeru-review` 直接读取大纲数据校验剧情偏离度
 
 ### 内置参考资源库
 outline技能内置多风格参考信息库，位于 `skills/outline/references/` 目录下，生成大纲时可自动引用匹配风格的参考内容：

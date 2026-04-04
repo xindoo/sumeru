@@ -65,10 +65,14 @@ type: skill
 - `diff/`：修改对比文件，记录每处修改的位置、原文、修改后内容、修改原因
 - `summary.json`：润色统计报告，包含修改数量、优化类型分布、字数变化
 - `style-config.json`：本次润色使用的风格、等级、重点参数配置
-- `improvement-suggestions.md`：后续写作优化建议
+
+#### 与其他 Skill 配合
+- **前置 Skill**：读取 `sumeru-write` 和 `sumeru-review` 的输出
+  - 从 `chapters/` 读取原始章节内容
+  - 从 `.sumeru/review/issues.json` 读取审查问题作为优化重点
+- **后续 Skill**：润色后的内容供 `sumeru-finalize` 使用
 
 #### 数据复用
 - 支持多轮润色，可基于上一轮润色结果继续优化
 - 可导出diff文件用于人工审核修改内容
 - 风格配置可复用，保持全本润色风格统一
-- 完稿阶段自动读取润色后的内容进行最终校验

@@ -71,12 +71,12 @@ type: skill
 **用户可见输出（当前工作目录）**：
 - `选题策划报告.md`：完整的选题策划报告（直接可读的Markdown格式）
 
-**中间数据（仅系统使用，存于`.sumeru/topic/`目录）**：
+**中间数据（仅系统内部使用，存于`.sumeru/topic/`目录）**：
 - `report.md`：完整报告的备份
-- `options.json`：所有多选题方案的结构化数据（JSON格式，供后续skill复用）
+- `options.json`：所有多选题方案的结构化数据（JSON格式，供后续 skill 复用）
 - `summary.json`：核心参数摘要，包含评分、推荐结论等
 
-#### 数据复用
-后续阶段可直接读取该目录数据：
-- 大纲设计阶段自动读取选题核心设定
-- 支持导入其他项目的 `options.json` 快速复用创意
+#### 与其他 Skill 配合
+此 skill 生成的 `options.json` 可以被 `sumeru-outline` skill 自动读取：
+- `sumeru-outline` 可以通过 `--load-from .sumeru/topic/options.json` 复用选题数据
+- 大纲设计阶段会自动继承选题中的核心设定、金手指设计等内容

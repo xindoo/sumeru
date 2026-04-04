@@ -58,6 +58,10 @@ skills/
 /sumeru-review 第1-50章
 /sumeru-review --all # 审查全部内容
 /sumeru-review 第1-20章 --only timeline,ooc # 仅检查指定问题类型
+/sumeru-review --only-summary --agent-count 5 # 仅生成章节概要（5个Agent并行）
+/sumeru-review --skip-summary # 跳过概要生成，直接使用已有的概要进行审查
+/sumeru-review --all --agent-count 3 --task-split chunk # 使用3个Agent的chunk模式
+/sumeru-review 第1-100章 --full-chapters 5,10,15 # 生成所有概要，对指定章节进行完整审查
 
 # 内容润色：优化文笔、节奏、爽点等
 /sumeru-polish <章节范围> [参数]
@@ -113,12 +117,13 @@ skills/
 ### 5. sumeru-review 逻辑审查Skill
 **定位**：内容质检官，适用于"检查有没有bug"、"时间线对不对"、"有没有剧情矛盾"等需求
 **核心能力**：
+- **两阶段审查流程**：先用 Agent Team 并行生成章节概要，再基于概要进行审查，避免上下文超长
 - 时间线校验：绝对/相对时间、季节、年龄、事件顺序一致性检查
 - 剧情一致性校验：设定、物品状态、信息边界、地理空间合理性检查
 - 逻辑漏洞检测：因果关系、人物动机、能力设定、社会常识合理性检查
 - OOC检测：人物性格、价值观、能力、语言风格、行为模式一致性检查
 - 伏笔追踪：记录所有伏笔位置、类型、回收状态，提供回收建议
-**核心参数**：`--all`、`--only`、`--dir`、`--enable-word-count`
+**核心参数**：`--all`、`--only`、`--dir`、`--enable-word-count`、`--only-summary`、`--skip-summary`、`--agent-count`、`--task-split`、`--full-chapters`
 
 ### 6. sumeru-polish 内容润色Skill
 **定位**：内容优化器，适用于"帮我润色一下"、"改改文笔"、"优化节奏"等需求

@@ -67,17 +67,20 @@ flowchart LR
 - 章节文件为纯净的正文内容，不含任何中间标记和元数据，用户可直接阅读、编辑
 - 支持自定义章节输出目录
 
-#### 中间过程数据（系统内部使用，不展示给用户）
+#### 中间过程数据（仅系统内部使用）
 所有中间状态、元数据、进度信息统一保存到 `.sumeru/write/` 目录：
 - `progress.json`：创作进度跟踪，包含已完成章节、字数统计、各章节状态
 - `chapter-meta.json`：每章元数据，包含核心事件、出场人物、爽点位置、伏笔记录
 - `character-state.json`：人物状态动态跟踪，记录各时间点人物能力、关系、状态变化
-- `auto-save/`：自动快照目录，每完成1章自动保存版本，防止内容丢失
-- `agent-logs/`：子agent运行日志和临时缓存
+
+#### 与其他 Skill 配合
+- **前置 Skill**：自动读取 `.sumeru/outline/` 目录的大纲数据
+  - 使用 `characters.json` 保持人物性格一致性
+  - 使用 `chapters.json` 中的章节细纲生成内容
+  - 使用 `world.json` 保持世界观设定一致性
+- **后续 Skill**：生成的章节数据可供 `sumeru-review`、`sumeru-polish`、`sumeru-finalize` 使用
 
 #### 断点恢复
 - 中断后重新调用会自动读取 `chapters/` 目录下已存在的章节文件和 `.sumeru/write/progress.json` 进度
 - 从最新未完成章节继续，自动跳过已生成的章节
 - 支持从指定章节恢复创作
-- 可读取 `.sumeru/outline/` 目录的大纲数据自动填充章节参数
-- 续写时自动读取前文人物状态、剧情脉络，保持一致性

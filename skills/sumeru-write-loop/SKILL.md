@@ -160,7 +160,7 @@ sumeru-write-loop 主 Agent
 - **sumeru-write-loop 的 --team-mode**：多 Agent 并行，适合大量章节（>20章），具有完整的任务调度和进度管理
 
 ## 进度记录规则
-1. 任务启动时创建 `.sumeru/sumeru-write-loop/` 目录（如果不存在）
+1. 任务启动时创建 `.sumeru/write-loop/` 目录（如果不存在）
 2. 每完成一章立即更新 `progress.md`
 3. 记录章节状态：待写、进行中、已完成、失败
 4. 保存失败章节的错误信息，支持单独重试
@@ -179,7 +179,12 @@ sumeru-write-loop 主 Agent
 - 所有章节生成的实际工作由 sumeru-write skill 完成
 - 支持透传 sumeru-write skill 的所有参数
 
-## 输出目录结构
+## 数据持久化
+### 用户可见输出（当前工作目录）
+- 生成的章节保存到 `chapters/` 目录
+
+### 中间数据（仅系统内部使用）
+所有进度和状态信息统一存储在 `.sumeru/write-loop/` 目录：
 ```
 .sumeru/
 └── write-loop/
