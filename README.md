@@ -21,13 +21,13 @@
 
 ```
 skills/
-├── worldbuilder/  # 世界构建师Skill，统筹全流程创作，负责整个故事世界的搭建与落地
-├── topic/         # 选题策划Skill，市场分析+创意生成
-├── outline/       # 大纲设计Skill，世界观+人设+剧情框架
-├── write/         # 章节撰写Skill，单章/批量创作+续写
-├── review/        # 逻辑审查Skill，时间线+剧情+人物一致性校验
-├── polish/        # 内容润色Skill，文笔优化+节奏调整+风格统一
-└── finalize/      # 完稿校验Skill，合规检查+多平台格式导出
+├── sumeru-worldbuilder/  # 世界构建师Skill，统筹全流程创作，负责整个故事世界的搭建与落地
+├── sumeru-topic/         # 选题策划Skill，市场分析+创意生成
+├── sumeru-outline/       # 大纲设计Skill，世界观+人设+剧情框架
+├── sumeru-write/         # 章节撰写Skill，单章/批量创作+续写
+├── sumeru-review/        # 逻辑审查Skill，时间线+剧情+人物一致性校验
+├── sumeru-polish/        # 内容润色Skill，文笔优化+节奏调整+风格统一
+└── sumeru-finalize/      # 完稿校验Skill，合规检查+多平台格式导出
 ```
 
 ## 🚀 安装方式
@@ -42,7 +42,7 @@ npx skills add xindoo/sumeru
 ### 全流程创作（推荐）
 直接启动完整创作流程，系统会自动引导你完成所有环节，自动协调选题→大纲→写作→审查→润色→导出全流程：
 ```bash
-/worldbuilder <题材类型> "<核心创意关键词>" [参数]
+/sumeru-worldbuilder <题材类型> "<核心创意关键词>" [参数]
 ```
 
 **核心参数说明：**
@@ -59,13 +59,13 @@ npx skills add xindoo/sumeru
 **示例：**
 ```bash
 # 基础用法
-/worldbuilder 玄幻 "废柴逆袭+系统流+穿越"
-/worldbuilder 都市 "重生+投资+创业"
-/worldbuilder 言情 "穿越+宫斗+甜宠"
+/sumeru-worldbuilder 玄幻 "废柴逆袭+系统流+穿越"
+/sumeru-worldbuilder 都市 "重生+投资+创业"
+/sumeru-worldbuilder 言情 "穿越+宫斗+甜宠"
 
 # 带高级参数的完整用法
-/worldbuilder 都市 "重生2000年+互联网创业+商战" --title "重生之网络帝国" --length 长篇 --style 精品文 --auto-confirm
-/worldbuilder 科幻 "星际冒险+机甲+无限流" --resume --skip-stages topic # 恢复之前的科幻题材创作，跳过选题环节
+/sumeru-worldbuilder 都市 "重生2000年+互联网创业+商战" --title "重生之网络帝国" --length 长篇 --style 精品文 --auto-confirm
+/sumeru-worldbuilder 科幻 "星际冒险+机甲+无限流" --resume --skip-stages topic # 恢复之前的科幻题材创作，跳过选题环节
 ```
 
 ### 独立功能调用
@@ -78,7 +78,7 @@ npx skills add xindoo/sumeru
 **功能**：基于主流平台榜单数据分析，生成3-5套差异化选题方案，包含金手指设计、核心卖点、爽点模式，以及市场热度、竞争格局、变现潜力等多维度评估。
 
 ```bash
-/topic <题材类型> "<核心关键词>" [参数]
+/sumeru-topic <题材类型> "<核心关键词>" [参数]
 ```
 
 **核心参数说明：**
@@ -92,13 +92,13 @@ npx skills add xindoo/sumeru
 **示例：**
 ```bash
 # 基础用法
-/topic 玄幻 "系统+签到+无敌" --platform=起点
-/topic 言情 "穿越+宫斗+甜宠" --audience=女频 --length=中篇
+/sumeru-topic 玄幻 "系统+签到+无敌" --platform=起点
+/sumeru-topic 言情 "穿越+宫斗+甜宠" --audience=女频 --length=中篇
 
 # 更多实用场景
-/topic 都市 "异能+鉴宝+赘婿" --platform=番茄 --audience=男频 # 生成番茄男频都市异能选题
-/topic 悬疑 "无限流+密室逃脱+灵异" --audience=中性 --length=中篇 # 生成中性向悬疑中篇选题
-/topic --load-existing # 加载之前生成的选题，继续优化
+/sumeru-topic 都市 "异能+鉴宝+赘婿" --platform=番茄 --audience=男频 # 生成番茄男频都市异能选题
+/sumeru-topic 悬疑 "无限流+密室逃脱+灵异" --audience=中性 --length=中篇 # 生成中性向悬疑中篇选题
+/sumeru-topic --load-existing # 加载之前生成的选题，继续优化
 ```
 
 ---
@@ -108,26 +108,26 @@ npx skills add xindoo/sumeru
 **功能**：生成完整世界观、人物设定卡、剧情框架、爽点排布规划，自动生成虚构名称避免侵权风险。
 
 ```bash
-/outline "<核心创意描述>" [参数]
+/sumeru-outline "<核心创意描述>" [参数]
 ```
 
 **核心参数说明：**
 | 参数 | 说明 | 示例 |
 |------|------|------|
-| `--load-from` | 复用已有选题数据 | `--load-from .sumeru/topic/options.json` |
+| `--load-from` | 复用已有选题数据 | `--load-from .sumeru/sumeru-topic/options.json` |
 | `--allow-mapping` | 允许映射真实地名/事件（需自行合规审核） | `--allow-mapping` |
 | `--style` | 大纲风格 | `--style 详细/精简/分卷` |
 
 **示例：**
 ```bash
 # 基础用法
-/outline "重生2000年靠互联网创业"
-/outline --load-from .sumeru/topic/options.json  # 复用选题阶段生成的创意
+/sumeru-outline "重生2000年靠互联网创业"
+/sumeru-outline --load-from .sumeru/sumeru-topic/options.json  # 复用选题阶段生成的创意
 
 # 更多实用场景
-/outline "高武世界+校花+系统+高考逆袭" --style 分卷 # 生成分卷式大纲
-/outline "古代权谋+皇子夺嫡+穿越" --allow-mapping # 允许映射真实历史背景
-/outline "星际文明+机甲战斗+虫族入侵" --load-from .sumeru/outline/draft.json # 复用之前的大纲草稿继续完善
+/sumeru-outline "高武世界+校花+系统+高考逆袭" --style 分卷 # 生成分卷式大纲
+/sumeru-outline "古代权谋+皇子夺嫡+穿越" --allow-mapping # 允许映射真实历史背景
+/sumeru-outline "星际文明+机甲战斗+虫族入侵" --load-from .sumeru/sumeru-outline/draft.json # 复用之前的大纲草稿继续完善
 ```
 
 ---
@@ -137,7 +137,7 @@ npx skills add xindoo/sumeru
 **功能**：遵循网文黄金节奏结构，保持人物性格与剧情一致性，支持多Agent并行批量创作。
 
 ```bash
-/write <章节号> "<章节概要>" [参数]
+/sumeru-write <章节号> "<章节概要>" [参数]
 ```
 
 **核心参数说明：**
@@ -154,14 +154,14 @@ npx skills add xindoo/sumeru
 **示例：**
 ```bash
 # 基础用法
-/write 第3章 "主角首次使用金手指震惊众人" --style xianxia --cool-face-slap --words 2500
-/write 第5章 --continue  # 续写第4章之后的内容
-/write 第1-100章 --parallel 5  # 并行批量生成100章内容，同时启用5个Agent
+/sumeru-write 第3章 "主角首次使用金手指震惊众人" --style xianxia --cool-face-slap --words 2500
+/sumeru-write 第5章 --continue  # 续写第4章之后的内容
+/sumeru-write 第1-100章 --parallel 5  # 并行批量生成100章内容，同时启用5个Agent
 
 # 更多实用场景
-/write 第1章 "主角重生回到高考前一天" --style urban --pace 快 --words 2000 # 快节奏开篇
-/write 第20-30章 --pov 女配 --style historical # 从女配视角写10章内容
-/write 第15章 "拍卖会冲突" --cool-face-slap --words 3000 # 强化打脸爽点的章节
+/sumeru-write 第1章 "主角重生回到高考前一天" --style urban --pace 快 --words 2000 # 快节奏开篇
+/sumeru-write 第20-30章 --pov 女配 --style historical # 从女配视角写10章内容
+/sumeru-write 第15章 "拍卖会冲突" --cool-face-slap --words 3000 # 强化打脸爽点的章节
 ```
 
 ---
@@ -171,7 +171,7 @@ npx skills add xindoo/sumeru
 **功能**：校验时间线、剧情一致性、人物行为合理性、伏笔追踪，自动发现剧情矛盾和不合理之处。
 
 ```bash
-/review <章节范围> [参数]
+/sumeru-review <章节范围> [参数]
 ```
 
 **核心参数说明：**
@@ -192,14 +192,14 @@ npx skills add xindoo/sumeru
 **示例：**
 ```bash
 # 基础用法
-/review 第1-50章
-/review --all  # 审查全部内容
-/review 第1-20章 --only timeline,ooc  # 仅检查时间线和人物OOC问题
+/sumeru-review 第1-50章
+/sumeru-review --all  # 审查全部内容
+/sumeru-review 第1-20章 --only timeline,ooc  # 仅检查时间线和人物OOC问题
 
 # 更多实用场景
-/review 第30-80章 --only plot,foreshadow # 检查剧情矛盾和伏笔回收情况
-/review --all --dir ./old-novel/chapters --enable-word-count # 审查旧作品全本，同时输出节奏分析
-/review 第10-15章 --only common # 检查这几章的常识/逻辑合理性
+/sumeru-review 第30-80章 --only plot,foreshadow # 检查剧情矛盾和伏笔回收情况
+/sumeru-review --all --dir ./old-novel/chapters --enable-word-count # 审查旧作品全本，同时输出节奏分析
+/sumeru-review 第10-15章 --only common # 检查这几章的常识/逻辑合理性
 ```
 
 ---
@@ -209,7 +209,7 @@ npx skills add xindoo/sumeru
 **功能**：4级润色级别，支持多风格转换，针对性优化节奏、爽点、对话、悬念等。
 
 ```bash
-/polish <章节范围> [参数]
+/sumeru-polish <章节范围> [参数]
 ```
 
 **核心参数说明：**
@@ -230,14 +230,14 @@ npx skills add xindoo/sumeru
 **示例：**
 ```bash
 # 基础用法
-/polish 第10章 --level 2 --style 小白爽文 --focus 爽点强化
-/polish 第1-3章 --light  # 轻度润色，保留原文风格
-/polish 第5章 --deep --focus 节奏收紧,对话优化 # 深度优化节奏和对话
+/sumeru-polish 第10章 --level 2 --style 小白爽文 --focus 爽点强化
+/sumeru-polish 第1-3章 --light  # 轻度润色，保留原文风格
+/sumeru-polish 第5章 --deep --focus 节奏收紧,对话优化 # 深度优化节奏和对话
 
 # 更多实用场景
-/polish 第1-20章 --style 古风 --focus 文笔提升 # 将前20章转为古风风格，提升文笔
-/polish 第35章 --deep --focus 悬念增强,爽点强化 # 深度优化章节悬念和爽点
-/polish 第1-100章 --level 1 # 全本仅修正错别字和标点，不修改内容
+/sumeru-polish 第1-20章 --style 古风 --focus 文笔提升 # 将前20章转为古风风格，提升文笔
+/sumeru-polish 第35章 --deep --focus 悬念增强,爽点强化 # 深度优化章节悬念和爽点
+/sumeru-polish 第1-100章 --level 1 # 全本仅修正错别字和标点，不修改内容
 ```
 
 ---
@@ -247,7 +247,7 @@ npx skills add xindoo/sumeru
 **功能**：错别字/标点/语法错误修正，敏感内容检测，格式标准化，多平台格式导出。
 
 ```bash
-/finalize [参数]
+/sumeru-finalize [参数]
 ```
 
 **核心参数说明：**
@@ -269,14 +269,14 @@ npx skills add xindoo/sumeru
 **示例：**
 ```bash
 # 基础用法
-/finalize --export qidian  # 导出起点平台格式
-/finalize --export all  # 导出全平台格式
-/finalize --replace --segment  # 批量替换+自动分段优化
+/sumeru-finalize --export qidian  # 导出起点平台格式
+/sumeru-finalize --export all  # 导出全平台格式
+/sumeru-finalize --replace --segment  # 批量替换+自动分段优化
 
 # 更多实用场景
-/finalize --export tomato --segment --output-dir ./tomato-publish # 导出番茄格式，自动分段
-/finalize --replace "张三":"李玄" "李四":"王虎" --dir ./chapters # 批量替换全文主角名称
-/finalize --export all --dir ./old-novel --output-dir ./old-novel/publish # 导出旧作品的全平台格式
+/sumeru-finalize --export tomato --segment --output-dir ./tomato-publish # 导出番茄格式，自动分段
+/sumeru-finalize --replace "张三":"李玄" "李四":"王虎" --dir ./chapters # 批量替换全文主角名称
+/sumeru-finalize --export all --dir ./old-novel --output-dir ./old-novel/publish # 导出旧作品的全平台格式
 ```
 
 ## 💾 数据持久化

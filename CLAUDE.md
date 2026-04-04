@@ -12,13 +12,13 @@
 ## 核心架构结构
 ```
 skills/
-├── worldbuilder/  # 世界构建师Skill，统筹全流程创作，负责整个故事世界的搭建与落地
-├── topic/         # 选题策划Skill，市场分析+创意生成
-├── outline/       # 大纲设计Skill，世界观+人设+剧情框架
-├── write/         # 章节撰写Skill，单章/批量创作+续写
-├── review/        # 逻辑审查Skill，时间线+剧情+人物一致性校验
-├── polish/        # 内容润色Skill，文笔优化+节奏调整+风格统一
-└── finalize/      # 完稿校验Skill，合规检查+多平台格式导出
+├── sumeru-worldbuilder/  # 世界构建师Skill，统筹全流程创作，负责整个故事世界的搭建与落地
+├── sumeru-topic/         # 选题策划Skill，市场分析+创意生成
+├── sumeru-outline/       # 大纲设计Skill，世界观+人设+剧情框架
+├── sumeru-write/         # 章节撰写Skill，单章/批量创作+续写
+├── sumeru-review/        # 逻辑审查Skill，时间线+剧情+人物一致性校验
+├── sumeru-polish/        # 内容润色Skill，文笔优化+节奏调整+风格统一
+└── sumeru-finalize/      # 完稿校验Skill，合规检查+多平台格式导出
 ```
 
 每个Skill目录采用统一结构：
@@ -30,50 +30,50 @@ skills/
 ### 全流程创作
 ```bash
 # 启动完整网文创作流程，自动协调所有环节
-/worldbuilder <题材类型> "<核心创意关键词>"
-/worldbuilder 玄幻 "废柴逆袭+系统流+穿越"
-/worldbuilder 都市 "重生+投资+创业"
+/sumeru-worldbuilder <题材类型> "<核心创意关键词>"
+/sumeru-worldbuilder 玄幻 "废柴逆袭+系统流+穿越"
+/sumeru-worldbuilder 都市 "重生+投资+创业"
 ```
 
 ### 单环节独立调用
 ```bash
 # 选题策划：生成多套选题方案与市场分析
-/topic <题材类型> "<核心关键词>"
-/topic 玄幻 "系统+签到+无敌" --platform=起点
-/topic 言情 "穿越+宫斗+甜宠" --audience=女频 --length=中篇
+/sumeru-topic <题材类型> "<核心关键词>"
+/sumeru-topic 玄幻 "系统+签到+无敌" --platform=起点
+/sumeru-topic 言情 "穿越+宫斗+甜宠" --audience=女频 --length=中篇
 
 # 大纲设计：生成完整世界观、人设、剧情大纲
-/outline "<核心创意描述>"
-/outline "重生2000年靠互联网创业"
-/outline --load-from .sumeru/topic/options.json # 复用已有选题数据
+/sumeru-outline "<核心创意描述>"
+/sumeru-outline "重生2000年靠互联网创业"
+/sumeru-outline --load-from .sumeru/topic/options.json # 复用已有选题数据
 
 # 章节撰写：生成/续写/重写章节内容
-/write <章节号> "<章节概要>" [参数]
-/write 第3章 "主角首次使用金手指震惊众人" --style xianxia --cool-face-slap --words 2500
-/write 第5章 --continue # 续写已有内容
-/write 第1-100章 --parallel 5 # 批量并行创作
+/sumeru-write <章节号> "<章节概要>" [参数]
+/sumeru-write 第3章 "主角首次使用金手指震惊众人" --style xianxia --cool-face-slap --words 2500
+/sumeru-write 第5章 --continue # 续写已有内容
+/sumeru-write 第1-100章 --parallel 5 # 批量并行创作
 
 # 逻辑审查：校验剧情一致性、时间线、人物OOC等问题
-/review <章节范围>
-/review 第1-50章
-/review --all # 审查全部内容
-/review 第1-20章 --only timeline,ooc # 仅检查指定问题类型
+/sumeru-review <章节范围>
+/sumeru-review 第1-50章
+/sumeru-review --all # 审查全部内容
+/sumeru-review 第1-20章 --only timeline,ooc # 仅检查指定问题类型
 
 # 内容润色：优化文笔、节奏、爽点等
-/polish <章节范围> [参数]
-/polish 第10章 --level 2 --style 小白爽文 --focus 爽点强化
-/polish 第1-3章 --light # 轻度润色，保留原文风格
-/polish 第5章 --deep --focus 节奏收紧,对话优化
+/sumeru-polish <章节范围> [参数]
+/sumeru-polish 第10章 --level 2 --style 小白爽文 --focus 爽点强化
+/sumeru-polish 第1-3章 --light # 轻度润色，保留原文风格
+/sumeru-polish 第5章 --deep --focus 节奏收紧,对话优化
 
 # 完稿校验：检查错误+导出平台适配格式
-/finalize [参数]
-/finalize --export qidian # 导出起点平台格式
-/finalize --export all # 导出全平台格式
-/finalize --replace --segment # 批量替换+自动分段
+/sumeru-finalize [参数]
+/sumeru-finalize --export qidian # 导出起点平台格式
+/sumeru-finalize --export all # 导出全平台格式
+/sumeru-finalize --replace --segment # 批量替换+自动分段
 ```
 
 ## Skill核心功能概览
-### 1. worldbuilder 世界构建师Skill
+### 1. sumeru-worldbuilder 世界构建师Skill
 **定位**：全流程创作协调器/故事世界统筹者，适用于"从零开始写小说"、"帮我写本XX类型的网文"等整体创作需求
 **核心能力**：
 - 智能编排选题→大纲→写作→审查→润色→完稿全流程，构建完整统一的故事世界
@@ -82,7 +82,7 @@ skills/
 - 多版本对比、团队协作、系列作品创作等进阶场景支持
 **核心参数**：`--title`、`--length`、`--style`、`--tone`、`--resume`、`--skip-stages`、`--auto-confirm`
 
-### 2. topic 选题策划Skill
+### 2. sumeru-topic 选题策划Skill
 **定位**：创意生成与市场分析，适用于"不知道写什么"、"帮我想个题材"、"分析什么题材火"等需求
 **核心能力**：
 - 市场热点分析，基于各大平台榜单数据提供趋势参考
@@ -91,7 +91,7 @@ skills/
 - 风险提示：政策风险、市场饱和风险、题材生命周期预警
 **核心参数**：`--platform`、`--audience`、`--length`、`--load-existing`
 
-### 3. outline 大纲设计Skill
+### 3. sumeru-outline 大纲设计Skill
 **定位**：故事框架搭建，适用于"写个小说大纲"、"设计人设"、"做世界观设定"等需求
 **核心能力**：
 - 完整世界观设定：世界背景、力量体系、社会规则、地理设定（全部虚构名称，合规避坑）
@@ -101,7 +101,7 @@ skills/
 - 自动合规检查：禁止使用真实人名/地名，避免侵权风险
 **核心参数**：`--load-from`、`--allow-mapping`、`--style`
 
-### 4. write 章节撰写Skill
+### 4. sumeru-write 章节撰写Skill
 **定位**：内容生成器，适用于"帮我写一章"、"续写内容"、"生成XX情节"等需求
 **核心能力**：
 - 适配网文节奏：开篇抓眼、中段冲突、结尾留悬念的黄金结构
@@ -110,7 +110,7 @@ skills/
 - 多Agent并行批量创作，支持同时生成多章内容，效率提升5倍+
 **核心参数**：`--style`、`--words`、`--pace`、`--pov`、`--batch`、`--parallel`、`--continue`
 
-### 5. review 逻辑审查Skill
+### 5. sumeru-review 逻辑审查Skill
 **定位**：内容质检官，适用于"检查有没有bug"、"时间线对不对"、"有没有剧情矛盾"等需求
 **核心能力**：
 - 时间线校验：绝对/相对时间、季节、年龄、事件顺序一致性检查
@@ -120,7 +120,7 @@ skills/
 - 伏笔追踪：记录所有伏笔位置、类型、回收状态，提供回收建议
 **核心参数**：`--all`、`--only`、`--dir`、`--enable-word-count`
 
-### 6. polish 内容润色Skill
+### 6. sumeru-polish 内容润色Skill
 **定位**：内容优化器，适用于"帮我润色一下"、"改改文笔"、"优化节奏"等需求
 **核心能力**：
 - 4级润色级别：轻度（仅纠错）→中度（优化表达）→深度（重构结构）→精细（逐字打磨）
@@ -128,7 +128,7 @@ skills/
 - 针对性优化：节奏收紧、爽点强化、对话优化、文笔提升、悬念增强
 **核心参数**：`--level`、`--light`/`--deep`、`--style`、`--focus`
 
-### 7. final 完稿校验Skill
+### 7. sumeru-finalize 完稿校验Skill
 **定位**：发布前最后把关，适用于"完稿检查"、"导出平台格式"、"批量处理"等需求
 **核心能力**：
 - 错误检查：错别字、标点、语法错误检测与修正
