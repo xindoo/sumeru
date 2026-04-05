@@ -42,16 +42,18 @@ skills/
 /sumeru-topic 玄幻 "系统+签到+无敌" --platform=起点
 /sumeru-topic 言情 "穿越+宫斗+甜宠" --audience=女频 --length=中篇
 
-# 大纲设计：生成完整世界观、人设、剧情大纲
+# 大纲设计：生成完整世界观、人设、剧情大纲和**完整章节细纲**
 /sumeru-outline "<核心创意描述>"
 /sumeru-outline "重生2000年靠互联网创业"
 /sumeru-outline --load-from .sumeru/topic/options.json # 复用已有选题数据
 
-# 章节撰写：生成/续写/重写章节内容
+# 章节撰写：生成/续写/重写章节内容（**支持细纲驱动并行生成**）
 /sumeru-write <章节号> "<章节概要>" [参数]
 /sumeru-write 第3章 "主角首次使用金手指震惊众人" --style xianxia --cool-face-slap --words 2500
 /sumeru-write 第5章 --continue # 续写已有内容
-/sumeru-write 第1-100章 --parallel 5 # 批量并行创作
+/sumeru-write --all # 从细纲生成所有章节（并行）
+/sumeru-write --all --parallel 5 # 指定并行度生成所有章节
+/sumeru-write 第1-100章 --parallel 5 # 批量并行创作指定范围
 
 # 逻辑审查：校验剧情一致性、时间线、人物OOC等问题
 /sumeru-review <章节范围>
@@ -101,6 +103,7 @@ skills/
 - 完整世界观设定：世界背景、力量体系、社会规则、地理设定（全部虚构名称，合规避坑）
 - 人物设定卡：主角、配角、反派的性格、背景、成长线、人物关系
 - 剧情框架：主线、支线、关键节点、高潮安排、分卷规划
+- **完整章节细纲：生成所有章节的详细细纲，保存为 chapter-outlines.json，供并行写作使用**
 - 爽点排布：遵循黄金爽点密度公式，规划关键爽点、转折点、悬念点位置
 - 自动合规检查：禁止使用真实人名/地名，避免侵权风险
 **核心参数**：`--load-from`、`--allow-mapping`、`--style`
@@ -108,11 +111,12 @@ skills/
 ### 4. sumeru-write 章节撰写Skill
 **定位**：内容生成器，适用于"帮我写一章"、"续写内容"、"生成XX情节"等需求
 **核心能力**：
+- **细纲驱动生成：自动读取 chapter-outlines.json，支持单章或批量并行生成所有章节**
 - 适配网文节奏：开篇抓眼、中段冲突、结尾留悬念的黄金结构
 - 保持人物性格与剧情逻辑一致性，避免OOC
 - 支持多种写作模式：续写、重写、扩写、精简、POV切换
 - 多Agent并行批量创作，支持同时生成多章内容，效率提升5倍+
-**核心参数**：`--style`、`--words`、`--pace`、`--pov`、`--batch`、`--parallel`、`--continue`
+**核心参数**：`--style`、`--words`、`--pace`、`--pov`、`--batch`、`--parallel`、`--continue`、`--all`、`--outline`
 
 ### 5. sumeru-review 逻辑审查Skill
 **定位**：内容质检官，适用于"检查有没有bug"、"时间线对不对"、"有没有剧情矛盾"等需求
@@ -154,6 +158,7 @@ skills/
 ├── session/          # 会话全局配置与状态
 ├── topic/            # 选题阶段中间数据
 ├── outline/          # 大纲阶段中间数据
+│   └── chapter-outlines.json  # **完整章节细纲（write阶段的输入）**
 ├── write/            # 创作阶段中间数据（进度、元数据等）
 ├── review/           # 审查阶段中间数据
 ├── polish/           # 润色阶段中间数据（diff记录等）

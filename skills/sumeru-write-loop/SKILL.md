@@ -7,19 +7,20 @@ type: skill
 # 循环章节写作 Skill (write-loop)
 
 ## 概述
-sumeru-write-loop skill 是对 sumeru-write skill 的扩展，专门用于大量章节的连续创作。它通过循环调用 sumeru-write skill 来完成多章节写作，并使用进度文件记录写作状态，支持断点续传和任务恢复。
+sumeru-write-loop skill 是对 sumeru-write skill 的扩展，专门用于大量章节的连续创作。它通过并行多agent调用 sumeru-write skill 来快速完成多章节写作，并使用进度文件记录写作状态，支持断点续传和任务恢复。
 
 ## 触发关键词
 帮我写100章小说、批量生成50章内容、循环写大量章节、继续之前的写作任务、恢复写作进度、批量写网文章节、大量章节创作
 
 ## 核心功能
-1. **循环执行 sumeru-write skill**：按章节顺序连续调用 sumeru-write skill 生成多章内容
-2. **进度跟踪**：在 `.sumeru/sumeru-write-loop/progress.md` 中记录详细的写作进度
-3. **断点续传**：支持从上次中断的位置继续写作
-4. **任务状态管理**：记录每章的状态（待写、进行中、已完成）
-5. **错误处理**：单章生成失败时自动重试，不影响整体进度
-6. **Agent team 并行处理**：支持启动多个子 Agent 并行写作，大幅提升效率
-7. **自 Agent 调度**：智能分配章节任务给子 Agent，自动管理工作负载
+1. **细纲感知模式**：自动检测 `.sumeru/outline/chapter-outlines.json`，优先使用细纲驱动
+2. **循环执行 sumeru-write skill**：按章节顺序连续调用 sumeru-write skill 生成多章内容
+3. **进度跟踪**：在 `.sumeru/sumeru-write-loop/progress.md` 中记录详细的写作进度
+4. **断点续传**：支持从上次中断的位置继续写作
+5. **任务状态管理**：记录每章的状态（待写、进行中、已完成）
+6. **错误处理**：单章生成失败时自动重试，不影响整体进度
+7. **Agent team 并行处理**：支持启动多个子 Agent 并行写作，大幅提升效率
+8. **自 Agent 调度**：智能分配章节任务给子 Agent，自动管理工作负载
 
 ## 进度文件格式
 `.sumeru/sumeru-write-loop/progress.md` 包含以下信息：
@@ -51,7 +52,10 @@ sumeru-write-loop skill 是对 sumeru-write skill 的扩展，专门用于大量
 
 ## 使用方法
 ```bash
-# 从第1章开始，生成50章
+# 从细纲读取，生成所有章节（自动检测chapter-outlines.json）
+/sumeru-write-loop --all
+
+# 从第1章开始，生成50章（使用细纲）
 /sumeru-write-loop 第1-50章
 
 # 从指定章节开始
@@ -65,6 +69,9 @@ sumeru-write-loop skill 是对 sumeru-write skill 的扩展，专门用于大量
 
 # 恢复特定任务
 /sumeru-write-loop --resume-from .sumeru/sumeru-write-loop/progress.md
+
+# 显式指定细纲文件
+/sumeru-write-loop --all --outline-file .sumeru/outline/chapter-outlines.json
 ```
 
 ## 核心参数
@@ -176,6 +183,7 @@ sumeru-write-loop 主 Agent
 ## 与 sumeru-write skill 的关系
 - sumeru-write-loop 完全复用 sumeru-write skill 的核心能力
 - sumeru-write-loop 负责调度、进度跟踪、错误处理
+- **细纲数据传递**：自动将 `chapter-outlines.json` 中的对应章节细纲传递给 sumeru-write
 - 所有章节生成的实际工作由 sumeru-write skill 完成
 - 支持透传 sumeru-write skill 的所有参数
 
@@ -209,10 +217,12 @@ sumeru-write-loop 主 Agent
 ```json
 {
   "taskId": "uuid",
-  "startedAt": "2026-04-04T22:00:00Z",
+  "startedAt": "2026-04-05T22:00:00Z",
   "totalChapters": 100,
   "completedChapters": 24,
   "currentChapter": 25,
+  "usesChapterOutlines": true,
+  "outlineSource": ".sumeru/outline/chapter-outlines.json",
   "parameters": {
     "style": "xianxia",
     "words": 3000,
@@ -222,8 +232,8 @@ sumeru-write-loop 主 Agent
   },
   "failedChapters": [5, 12],
   "agentStatus": {
-    "Agent-1": {"status": "running", "currentChapter": 25, "startTime": "2026-04-04T22:00:00Z"},
-    "Agent-2": {"status": "running", "currentChapter": 26, "startTime": "2026-04-04T22:00:10Z"},
+    "Agent-1": {"status": "running", "currentChapter": 25, "startTime": "2026-04-05T22:00:00Z"},
+    "Agent-2": {"status": "running", "currentChapter": 26, "startTime": "2026-04-05T22:00:10Z"},
     "Agent-3": {"status": "idle", "currentChapter": null, "startTime": null}
   },
   "chapterAssignment": {
