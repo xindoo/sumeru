@@ -15,7 +15,7 @@ type: skill
 3. 剧情框架：主线故事、支线剧情、关键节点、高潮安排
 4. 分卷大纲：按卷划分剧情阶段，明确每卷核心冲突与目标
 5. 爽点排布：规划关键爽点、转折点、悬念点的位置
-6. 强制合规检查：自动校验所有命名，确保不使用真实世界的人名、地名，避免侵权风险
+6. 强制合规检查：基于AI推理检测所有名称，识别可能的真实人名/地名，避免侵权风险
 
 ### 输出结构
 
@@ -143,9 +143,8 @@ type: skill
 
 当需要生成的章节细纲数量大于3章时（中篇及以上篇幅），支持使用子Agent并行生成细纲：
 
-**⚠️ 核心约束：每个子Agent最多负责3个章节的细纲生成**
-- 长篇/超长篇作品（50章以上）的细纲生成建议启用并行模式
-- 章节分配示例：100章细纲任务 → 至少需要 ceil(100/3)=34个子Agent并行处理
+**⚠️ 遵循全局约束：每个子Agent最多负责3个章节的细纲生成**（详见 AGENTS.md "子Agent并行处理规则"）
+- 所需Agent数 = ceil(总章节数 / 3)
 - 分配策略：按卷分配优先，同一卷的章节尽量分配给同一组Agent
 - 每个Agent接收：已确定的世界观设定、人物设定、分卷大纲、负责章节的上下文关联
 
@@ -182,7 +181,7 @@ flowchart LR
    - ✅ 现实背景类作品如需要映射真实地点，必须使用虚构化名称（如"魔都"、"帝都"等泛称，或谐音改编名称）
 
 3. **自动检查机制**：
-   - 大纲生成时自动检测所有名称，内置真实人名/地名数据库比对
+   - 大纲生成时基于AI推理识别可能的真实人名/地名
    - 发现疑似真实名称时自动提示并提供3个以上虚构替换方案
    - 所有违规名称必须替换后才能完成大纲生成
    - 合规检查报告自动保存到 `.sumeru/outline/compliance-check.json`
@@ -240,6 +239,106 @@ flowchart LR
       "pov": "主角视角",
       "mood": "压抑→震惊→期待",
       "volumeNumber": 1
+    }
+  ]
+}
+```
+
+#### world.json 数据结构规范
+
+```json
+{
+  "meta": {
+    "generatedAt": "2026-04-26T10:00:00Z",
+    "genre": "玄幻",
+    "style": "详细"
+  },
+  "background": {
+    "era": "时代背景（古代/现代/未来/玄幻）",
+    "history": ["关键历史事件1", "关键历史事件2"],
+    "coreRules": "世界本质/底层逻辑"
+  },
+  "powerSystem": {
+    "levels": ["等级1", "等级2", "等级3"],
+    "acquisition": "力量获取方式",
+    "balance": "力量平衡/克制关系"
+  },
+  "society": {
+    "politics": "政治结构",
+    "economy": "经济体系",
+    "classes": ["社会阶层1", "社会阶层2"],
+    "culture": ["文化习俗1", "文化习俗2"],
+    "taboos": ["禁忌规则1", "禁忌规则2"]
+  },
+  "geography": {
+    "overview": "世界地图概览",
+    "locations": [
+      {
+        "name": "虚构地名",
+        "type": "主城/秘境/险地",
+        "description": "地点描述",
+        "factions": ["关联势力"]
+      }
+    ]
+  }
+}
+```
+
+#### characters.json 数据结构规范
+
+```json
+{
+  "meta": {
+    "generatedAt": "2026-04-26T10:00:00Z",
+    "totalCharacters": 8
+  },
+  "protagonist": {
+    "name": "主角姓名（虚构）",
+    "age": "年龄",
+    "appearance": "外貌描述",
+    "identity": "身份",
+    "personality": {
+      "core": ["核心性格1", "核心性格2"],
+      "strengths": ["优点1", "优点2"],
+      "weaknesses": ["缺点1", "缺点2"],
+      "catchphrase": "口头禅"
+    },
+    "background": "过往经历",
+    "trauma": "创伤/执念",
+    "goals": {
+      "shortTerm": "短期目标",
+      "midTerm": "中期目标",
+      "longTerm": "长期目标"
+    },
+    "growthArc": "从XX到XX的转变",
+    "goldenFinger": {
+      "name": "金手指名称",
+      "source": "来源",
+      "description": "描述",
+      "limitations": ["限制1", "限制2"],
+      "growthSpace": "成长空间"
+    },
+    "tags": ["标签1", "标签2", "标签3"]
+  },
+  "supportingCharacters": [
+    {
+      "name": "配角姓名（虚构）",
+      "relationship": "与主角关系",
+      "function": "导师/伙伴/对手/红颜",
+      "personality": "性格描述",
+      "goal": "个人目标",
+      "growthLine": "成长线",
+      "interactionMode": "与主角互动模式"
+    }
+  ],
+  "antagonists": [
+    {
+      "name": "反派姓名（虚构）",
+      "personality": "性格描述",
+      "motivation": "反派动机",
+      "power": "实力层次",
+      "conflict": "与主角核心冲突",
+      "charm": "反派魅力点"
     }
   ]
 }

@@ -168,7 +168,7 @@ npx skills add xindoo/sumeru
 
 #### 4. 逻辑审查 Skill
 **适用场景**：检查剧情bug、时间线错误、人物OOC、逻辑漏洞
-**功能**：校验时间线、剧情一致性、人物行为合理性、伏笔追踪，自动发现剧情矛盾和不合理之处。
+**功能**：校验时间线、剧情一致性、人物行为合理性、伏笔追踪，自动发现剧情矛盾和不合理之处。修复结果保存到staging区域，通过`--apply`应用到章节文件。
 
 ```bash
 /sumeru-review <章节范围> [参数]
@@ -180,7 +180,8 @@ npx skills add xindoo/sumeru
 | `--all` | 审查全部章节 | `--all` |
 | `--only` | 仅检查指定问题类型 | `--only timeline,ooc,plot` |
 | `--dir` | 指定章节文件目录 | `--dir ./my-novel/chapters` |
-| `--enable-word-count` | 同时统计字数/节奏数据 | `--enable-word-count` |
+| `--word-count` | 同时统计字数/节奏数据 | `--word-count` |
+| `--apply` | 将修复结果应用到 chapters/ 目录 | `--apply` |
 
 **支持检查的问题类型：**
 - `timeline`：时间线/年龄/事件顺序一致性
@@ -198,7 +199,7 @@ npx skills add xindoo/sumeru
 
 # 更多实用场景
 /sumeru-review 第30-80章 --only plot,foreshadow # 检查剧情矛盾和伏笔回收情况
-/sumeru-review --all --dir ./old-novel/chapters --enable-word-count # 审查旧作品全本，同时输出节奏分析
+/sumeru-review --all --dir ./old-novel/chapters --word-count # 审查旧作品全本，同时输出节奏分析
 /sumeru-review 第10-15章 --only common # 检查这几章的常识/逻辑合理性
 ```
 
@@ -206,7 +207,7 @@ npx skills add xindoo/sumeru
 
 #### 5. 内容润色 Skill
 **适用场景**：优化文笔、调整节奏、强化爽点、统一风格
-**功能**：4级润色级别，支持多风格转换，针对性优化节奏、爽点、对话、悬念等。
+**功能**：3级润色级别，专注文笔与内容层面优化，支持多风格转换，针对性优化节奏、爽点、对话、悬念等。
 
 ```bash
 /sumeru-polish <章节范围> [参数]
@@ -215,29 +216,28 @@ npx skills add xindoo/sumeru
 **核心参数说明：**
 | 参数 | 说明 | 示例 |
 |------|------|------|
-| `--level` | 润色级别（1-4） | `--level 2` |
-| `--light` | 轻度润色（仅纠错，保留原文风格） | `--light` |
+| `--level` | 润色级别（1-3） | `--level 2` |
 | `--deep` | 深度润色（重构结构/节奏） | `--deep` |
 | `--style` | 目标风格 | `--style 小白爽文/精品文/古风` |
 | `--focus` | 优化重点 | `--focus 爽点强化,节奏收紧,对话优化` |
+| `--apply` | 将润色结果应用到 chapters/ 目录 | `--apply` |
 
 **润色级别说明：**
-- Level 1/轻度：仅修正错别字、标点、语法错误
-- Level 2/中度：优化表达，提升文笔，不改变原意
-- Level 3/深度：重构段落结构，调整节奏，强化爽点
-- Level 4/精细：逐字打磨，优化细节，提升整体质感
+- Level 1/轻度：优化句式表达，去除冗余表述，精炼用词，提升文字流畅度
+- Level 2/中度：重构段落结构，优化叙事视角，全面提升文笔质感
+- Level 3/深度：逐字打磨，雕琢细节，追求最佳阅读体验
 
 **示例：**
 ```bash
 # 基础用法
 /sumeru-polish 第10章 --level 2 --style 小白爽文 --focus 爽点强化
-/sumeru-polish 第1-3章 --light  # 轻度润色，保留原文风格
+/sumeru-polish 第1-3章 --level 1  # 轻度润色，优化表达流畅度
 /sumeru-polish 第5章 --deep --focus 节奏收紧,对话优化 # 深度优化节奏和对话
 
 # 更多实用场景
 /sumeru-polish 第1-20章 --style 古风 --focus 文笔提升 # 将前20章转为古风风格，提升文笔
 /sumeru-polish 第35章 --deep --focus 悬念增强,爽点强化 # 深度优化章节悬念和爽点
-/sumeru-polish 第1-100章 --level 1 # 全本仅修正错别字和标点，不修改内容
+/sumeru-polish 第1-100章 --level 1 # 全本轻度润色，优化文字流畅度
 ```
 
 ---
@@ -291,9 +291,13 @@ npx skills add xindoo/sumeru
 ├── session/          # 会话全局配置与状态
 ├── topic/            # 选题阶段中间数据
 ├── outline/          # 大纲阶段中间数据
-├── write/            # 创作阶段中间数据（进度、元数据等）
+├── write/            # 创作阶段中间数据
+│   └── original/     # 原始章节备份（--apply前自动备份）
 ├── review/           # 审查阶段中间数据
-├── polish/           # 润色阶段中间数据（diff记录等）
+│   ├── fixed/        # 轻量修复后的章节（staging区域，需--apply应用）
+│   └── fix-plan.json # 重写修复计划
+├── polish/           # 润色阶段中间数据
+│   └── modified/     # 润色后的章节（staging区域，需--apply应用）
 └── finalize/         # 完稿阶段中间数据
 ```
 

@@ -68,7 +68,7 @@ skills/
 # 内容润色：优化文笔、节奏、爽点等
 /sumeru-polish <章节范围> [参数]
 /sumeru-polish 第10章 --level 2 --style 小白爽文 --focus 爽点强化
-/sumeru-polish 第1-3章 --light # 轻度润色，保留原文风格
+/sumeru-polish 第1-3章 --level 1 # 轻度润色，优化表达流畅度
 /sumeru-polish 第5章 --deep --focus 节奏收紧,对话优化
 
 # 完稿校验：检查错误+导出平台适配格式
@@ -121,21 +121,21 @@ skills/
 ### 5. sumeru-review 逻辑审查Skill
 **定位**：内容质检官，适用于"检查有没有bug"、"时间线对不对"、"有没有剧情矛盾"等需求
 **核心能力**：
-- **三阶段审查修复流程**：全局审查→章节细节审查（Agent Team并行，每个Agent最多3章）→统一修复
+- **三阶段审查修复流程**：全局审查→章节细节审查（Agent Team并行，遵循3章/Agent全局约束）→轻量修复+重写修复计划
 - 时间线校验：绝对/相对时间、季节、年龄、事件顺序一致性检查
 - 剧情一致性校验：设定、物品状态、信息边界、地理空间合理性检查
 - 逻辑漏洞检测：因果关系、人物动机、能力设定、社会常识合理性检查
 - OOC检测：人物性格、价值观、能力、语言风格、行为模式一致性检查
 - 伏笔追踪：记录所有伏笔位置、类型、回收状态，提供回收建议
-**核心参数**：`--all`、`--only`、`--dir`、`--enable-word-count`、`--only-summary`、`--skip-summary`、`--agent-count`、`--task-split`、`--full-chapters`
+**核心参数**：`--all`、`--only`、`--dir`、`--word-count`、`--target-words`、`--auto-fix`、`--fix-level`、`--apply`、`--agent-count`、`--task-split`
 
 ### 6. sumeru-polish 内容润色Skill
 **定位**：内容优化器，适用于"帮我润色一下"、"改改文笔"、"优化节奏"等需求
 **核心能力**：
-- 4级润色级别：轻度（仅纠错）→中度（优化表达）→深度（重构结构）→精细（逐字打磨）
+- 3级润色级别：轻度（优化表达）→中度（重构结构）→深度（逐字打磨）
 - 多风格适配：小白爽文、精品文、古风、都市现实、悬疑、科幻等风格转换
 - 针对性优化：节奏收紧、爽点强化、对话优化、文笔提升、悬念增强
-**核心参数**：`--level`、`--light`/`--deep`、`--style`、`--focus`
+**核心参数**：`--level`、`--deep`、`--style`、`--focus`、`--apply`
 
 ### 7. sumeru-finalize 完稿校验Skill
 **定位**：发布前最后把关，适用于"完稿检查"、"导出平台格式"、"批量处理"等需求
@@ -159,9 +159,13 @@ skills/
 ├── topic/            # 选题阶段中间数据
 ├── outline/          # 大纲阶段中间数据
 │   └── chapter-outlines.json  # **完整章节细纲（write阶段的输入）**
-├── write/            # 创作阶段中间数据（进度、元数据等）
+├── write/            # 创作阶段中间数据
+│   └── original/     # 原始章节备份（--apply前自动备份）
 ├── review/           # 审查阶段中间数据
-├── polish/           # 润色阶段中间数据（diff记录等）
+│   ├── fixed/        # 轻量修复后的章节（staging区域，需--apply应用到chapters/）
+│   └── fix-plan.json # 重写修复计划（标记需要重写的章节）
+├── polish/           # 润色阶段中间数据
+│   └── modified/     # 润色后的章节（staging区域，需--apply应用到chapters/）
 └── finalize/         # 完稿阶段中间数据
 ```
 
@@ -210,10 +214,13 @@ skills/
 2. **上下文轻量化**：所有 bulky 参考资料（题材规范、剧情模板等）存放在各Skill的`references/`目录，不要在AGENTS.md中冗余存储
 3. **输出确定性**：所有Skill对相同输入应产生一致、可复现的输出
 4. **错误友好**：所有脚本需返回清晰、可操作的错误信息，说明解决方法
-5. **子Agent并行处理规则（全局强制约束）**：所有涉及章节级批量操作的Skill（sumeru-write、sumeru-review、sumeru-polish、sumeru-finalize、sumeru-outline的细纲生成），在处理大量章节时必须使用子Agent并行处理，且**每个子Agent最多负责3个章节**。这是硬性约束，不可违反。
+5. **子Agent并行处理规则（全局强制约束）**：所有涉及章节级批量操作的Skill（sumeru-write、sumeru-review、sumeru-polish、sumeru-finalize、sumeru-outline的细纲生成），在处理大量章节时必须使用子Agent并行处理，且**每个子Agent最多负责3个章节**。这是硬性约束，不可违反。各Skill定义文件中不再重复完整描述此规则，统一引用本条。
    - **设计原因**：防止单个Agent处理过多章节导致上下文溢出和质量下降，3章是兼顾效率（保持章节间上下文连贯性）与质量（避免任务过重降低产出）的平衡点
    - **适用场景**：写作、审查、润色、校验、细纲生成等所有无前后依赖的章节级批量操作
    - **调度计算**：所需Agent数 = ceil(总章节数 / 3)，分配策略为按章节顺序连续分配
+   - **Skill内引用方式**：各Skill中使用"⚠️ 遵循全局约束：每个子Agent最多负责3个章节（详见 AGENTS.md '子Agent并行处理规则'）"格式引用，不再完整重述
+6. **Staging Area 规则（全局强制约束）**：review修复和polish润色的结果必须先保存到各自`.sumeru/`子目录的staging区域（`.sumeru/review/fixed/`、`.sumeru/polish/modified/`），不得直接覆盖`chapters/`目录。用户通过`--apply`参数或worldbuilder编排时，才将staging内容应用到`chapters/`，应用前自动备份原始章节到`.sumeru/write/original/`。
+7. **Skill间解耦规则**：禁止下游Skill直接调用上游Skill。review不得直接调用sumeru-write进行重写修复，而是生成修复计划（fix-plan.json），由worldbuilder编排或用户手动调用sumeru-write处理。
 
 ## 核心文件索引
 - `AGENTS.md` - 本文件，全局规则与命令说明
