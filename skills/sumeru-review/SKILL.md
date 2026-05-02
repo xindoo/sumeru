@@ -186,10 +186,10 @@ user-invocable: true
 
 **第二阶段：章节细节审查数据**
 - `summaries/`：章节概要目录
-  - `chapter-1.json`、`chapter-2.json`... 每章的核心剧情概要
+  - `001.json`、`002.json`... 每章的核心剧情概要（章节号三位数零填充）
   - `summary-progress.json`：概要生成进度记录
 - `chapter-issues/`：章节问题清单
-  - `chapter-1.json`、`chapter-2.json`... 每章的详细问题记录
+  - `001.json`、`002.json`... 每章的详细问题记录（章节号三位数零填充）
 - `word-count.json`：字数统计数据，每章字数、目标字数、填充情况
 
 **第三阶段：统一修复数据**

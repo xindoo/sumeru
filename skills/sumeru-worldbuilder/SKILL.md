@@ -421,8 +421,8 @@ flowchart LR
       "status": "completed",
       "completed_at": "2024-03-15T13:45:00",
       "output_files": [
-        "chapters/第1章_废物觉醒系统.md",
-        "chapters/第2章_系统签到奖励.md",
+        "chapters/001-废物觉醒系统.md",
+        "chapters/002-系统签到奖励.md",
         ".sumeru/write/progress.json"
       ],
       "statistics": {
@@ -446,8 +446,8 @@ flowchart LR
         "issues_rewritten": 2
       },
       "chapters_repaired": [
-        ".sumeru/review/fixed/第15章_误会加深.md",
-        ".sumeru/review/fixed/第42章_时间线冲突.md"
+        ".sumeru/review/fixed/015-误会加深.md",
+        ".sumeru/review/fixed/042-时间线冲突.md"
       ],
       "fix_plan_generated": true,
       "applied": true
