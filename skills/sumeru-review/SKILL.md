@@ -1,6 +1,6 @@
 ---
 name: sumeru-review
-description: 小说逻辑/剧情审查，适用于用户说"帮我检查下小说有没有bug"、"看看时间线有没有矛盾"、"人物有没有OOC"、"找剧情前后冲突"、"梳理伏笔有没有回收"、"检查小说剧情合理性"、"看看有没有剧情漏洞"、"人物行为不符合性格"、"检查时间线对不对"、"找小说前后矛盾的地方"、"帮我梳理所有伏笔"、"小说剧情bug检查"、"逻辑漏洞排查"等需求，检测时间线冲突、逻辑漏洞、人物OOC、伏笔遗漏等问题，**执行字数检查确保章节字数达标**，**生成详细问题清单并自动修复所有问题，修复结果保存到 staging 区域供用户确认后再应用**，**批量审查时使用子Agent并行处理，每个Agent最多负责3个章节**
+description: 小说逻辑/剧情审查，适用于用户说"帮我检查下小说有没有bug"、"看看时间线有没有矛盾"、"人物有没有OOC"、"找剧情前后冲突"、"梳理伏笔有没有回收"、"检查小说剧情合理性"、"看看有没有剧情漏洞"、"人物行为不符合性格"、"检查时间线对不对"、"找小说前后矛盾的地方"、"帮我梳理所有伏笔"、"小说剧情bug检查"、"逻辑漏洞排查"等需求，检测时间线冲突、逻辑漏洞、人物OOC、伏笔遗漏等问题，**执行字数检查确保章节字数达标**，**生成详细问题清单并自动修复所有问题，修复结果直接修改 chapters/ 目录，修改前自动备份到 .sumeru/write/original/**，**批量审查时使用子Agent并行处理，每个Agent最多负责3个章节**
 user-invocable: true
 ---
 
@@ -42,7 +42,7 @@ user-invocable: true
 **第三阶段：统一修复执行**
 - 合并全局问题和章节问题，按严重程度排序（致命 > 严重 > 中等 > 轻微）
 - 制定并执行**修复计划**，分为两种修复类型：
-  - **轻量修复**（review 直接执行）：文字修正、段落调整、语句优化、字数填充等 minor 修改
+  - **轻量修复**（review 直接执行）：文字修正、段落调整、语句优化、字数填充等 minor 修改，**直接修改 `chapters/` 文件**（修改前自动备份到 `.sumeru/write/original/`）
   - **重写修复**（标记待处理）：剧情逻辑严重矛盾、大面积OOC、设定崩坏等需要重写的章节，记录到修复计划
 - 执行轻量修复策略：
   - **全局问题修复**：调整整体时间线、统一设定、优化主线结构
@@ -50,8 +50,6 @@ user-invocable: true
   - **联动修复**：处理跨章节的关联问题（如伏笔回收、人物成长）
 - 生成**修复报告**到 `.sumeru/review/fix-report.json`
 - 生成**修复计划** `fix-plan.json`，标记需要重写的章节及具体修复建议
-- 修复结果（轻量修复后的章节）**保存到 `.sumeru/review/fixed/` 目录**
-- 使用 `--apply` 参数时，自动将 `.sumeru/review/fixed/` 中的修复结果应用到 `chapters/` 目录；默认不应用，保留在 staging 区域供用户确认
 - 修复后重新审查，验证所有轻量修复问题已彻底解决
 
 #### 三阶段功能分配
@@ -74,7 +72,7 @@ user-invocable: true
 
 **第三阶段：统一修复功能**
 12. **问题统一修复**：合并所有问题，按严重程度排序，制定修复计划
-13. **轻量修复执行**：文字修正、段落调整、语句优化、字数填充等直接修改
+13. **轻量修复执行**：文字修正、段落调整、语句优化、字数填充等直接修改 `chapters/` 文件
 14. **重写修复标记**：对需要重写的章节生成 `fix-plan.json`，记录具体问题与修复建议
 15. **全局问题修复**：调整整体剧情、时间线、设定等大尺度问题
 16. **章节问题修复**：逐章修复字数、逻辑、人物、场景等轻量级细节问题
@@ -83,65 +81,10 @@ user-invocable: true
 - **⚠️ 轻量修复阶段遵循全局约束：每个Agent最多负责3个章节**（详见 AGENTS.md）
 
 #### 修复机制说明
-- **轻量级修复**：直接修改有问题的段落或句子，由 review 自己完成
+- **轻量级修复**：直接修改 `chapters/` 中有问题的段落或句子，修改前自动备份原始文件到 `.sumeru/write/original/`
 - **重写修复**：对于严重有问题的章节，记录到 `fix-plan.json`，建议使用 `sumeru-write` 重新生成
-- **修复结果保存**：轻量修复后的内容保存到 `.sumeru/review/fixed/` 目录，原 `chapters/` 文件不受影响
-- **修复应用**：使用 `--apply` 参数时，将 `.sumeru/review/fixed/` 中的修复结果复制到 `chapters/` 目录，替换原文件
+- **自动备份**：修改 `chapters/` 文件前，自动将原始版本备份到 `.sumeru/write/original/`，确保可回滚
 - **修复记录**：所有修复操作都记录在 `issues-fixed.json` 中，包含修复前后对比
-
-#### 各阶段功能详细说明
-
-**第一阶段：全局审查**
-- **整体剧情脉络分析**：基于大纲和章节细纲，建立剧情脉络图，识别主线支线关联问题
-- **全局时间线校验**：构建完整的时间线图谱，识别跨章节的时序矛盾
-- **设定一致性检查**：验证世界观、力量体系、规则设定在全书中的统一性
-- **冲突点分布评估**：检查冲突强度和分布是否符合节奏要求（黄金章节分布）
-- **伏笔回收状态检查**：统计所有伏笔的回收状态，识别未回收的重要伏笔
-
-**第二阶段：章节细节审查**
-- **字数检查与填充**：统计每章字数，对不足的章节自动填充（场景描写、对话、心理活动等）
-- **章节时间线与事件时序**：检查每章内部的时间逻辑，确保事件顺序合理
-- **OOC检测与人物一致性**：对比设定卡和实际表现，识别性格偏离
-- **物品状态与信息边界**：追踪物品状态变化和人物信息的获取/传递逻辑
-- **场景描写与对话质量**：评估场景细节的丰富度和对话的自然度
-- **章节伏笔设置**：记录每章的伏笔设置，与全局回收状态关联
-
-**第三阶段：统一修复**
-- **问题统一修复**：合并所有问题，按严重程度统一修复，制定修复计划
-- **轻量修复执行**：文字修正、段落调整、语句优化、字数填充等 review 直接完成
-- **重写修复标记**：对需要重写的章节生成 `fix-plan.json`，记录问题与修复建议
-- **全局问题修复**：调整整体剧情架构、时间线、设定等大尺度问题
-- **章节问题修复**：逐章修复字数、逻辑、人物、场景等轻量级细节问题
-- **联动修复**：处理跨章节关联问题，确保修复后的整体一致性
-- **修复验证**：修复后重新执行审查流程，确保所有轻量修复问题已彻底解决
-
-#### 修复机制说明
-- **轻量级修复**：直接修改有问题的段落或句子，由 review 自己完成
-- **重写修复**：对于严重有问题的章节，记录到 `fix-plan.json`，建议使用 `sumeru-write` 重新生成
-- **修复结果保存**：轻量修复后的内容保存到 `.sumeru/review/fixed/` 目录，原 `chapters/` 文件不受影响
-- **修复应用**：使用 `--apply` 参数时，将 `.sumeru/review/fixed/` 中的修复结果复制到 `chapters/` 目录，替换原文件
-- **修复记录**：所有修复操作都记录在 `issues-fixed.json` 中，包含修复前后对比
-
-### 核心参数
-| 参数 | 类型 | 说明 | 示例 |
-|------|------|------|------|
-| `--only-global` | boolean | 仅执行第一阶段：全局审查 | `--only-global` |
-| `--only-chapter` | boolean | 仅执行第二阶段：章节细节审查 | `--only-chapter` |
-| `--only-fix` | boolean | 仅执行第三阶段：统一修复（使用已有问题清单） | `--only-fix` |
-| `--agent-count` | number | 并行生成概要的 Agent 数量（默认自动计算：ceil(总章数/3)，遵循 AGENTS.md 全局约束） | `--agent-count 5` |
-| `--task-split` | string | 任务分配策略：round-robin/smart/chunk（默认 round-robin） | `--task-split chunk` |
-| `--full-chapters` | string | 指定需要加载完整内容审查的章节（逗号分隔） | `--full-chapters 1,5,10` |
-| `--only` | string | 仅检查指定问题类型：timeline,ooc,plot,foreshadow,common | `--only timeline,ooc` |
-| `--all` | boolean | 执行全部三阶段审查并修复 | `--all` |
-| `--dir` | string | 指定章节文件目录 | `--dir ./my-novel/chapters` |
-| `--word-count` | boolean | 在第二阶段执行字数检查与填充 | `--word-count` |
-| `--target-words` | number | 每章目标字数（默认：3000-5000字，根据平台自动调整） | `--target-words 4000` |
-| `--min-words` | number | 每章最低字数限制（低于此值强制填充） | `--min-words 2500` |
-| `--auto-fix` | boolean | 自动修复所有检测到的问题（默认：true） | `--auto-fix false` |
-| `--fix-level` | string | 修复强度：minimal/moderate/comprehensive（默认：moderate） | `--fix-level comprehensive` |
-| `--apply` | boolean | 将修复结果从 `.sumeru/review/fixed/` 应用到 `chapters/` 目录（默认：false） | `--apply` |
-| `--skip-global` | boolean | 跳过第一阶段，直接使用已有全局数据 | `--skip-global` |
-| `--skip-chapter` | boolean | 跳过第二阶段，直接使用已有章节审查数据 | `--skip-chapter` |
 
 ### 输出内容
 **第一阶段：全局审查输出**
@@ -196,26 +139,25 @@ user-invocable: true
 - `issues.json`：合并后的完整问题清单，按严重程度、类型分类
 - `fix-report.json`：问题修复报告，包含修复前后对比
 - `fix-plan.json`：重写修复计划，标记需要重写的章节及具体修复建议
-- `fixed/`：轻量修复后的章节文件 staging 目录
 - `issues-fixed.json`：已修复问题记录
 - `global-fix.log`：全局问题修复日志
 - `chapter-fix.log`：章节问题修复日志
 
 #### 与其他 Skill 配合
 - **前置 Skill**：读取 `sumeru-outline` 的大纲数据和 `sumeru-write` 的章节数据
-  - 使用 `.sumeru/outline/` 的世界观、人设、大纲作为基准
-  - **使用 `.sumeru/outline/chapter-outlines.json` 作为预期剧情参考**
-  - 使用 `chapters/` 目录下的章节内容进行审查
-  - 将实际章节内容与细纲进行对比，识别剧情偏离
+   - 使用 `.sumeru/outline/` 的世界观、人设、大纲作为基准
+   - **使用 `.sumeru/outline/chapter-outlines.json` 作为预期剧情参考**
+   - 使用 `chapters/` 目录下的章节内容进行审查
+   - 将实际章节内容与细纲进行对比，识别剧情偏离
 
 - **修复计划输出**：修复完成后生成 `fix-plan.json`，其中标记了需要重写的章节及具体修复建议
-  - worldbuilder 在编排流程时读取此文件，决定是否需要调用 `sumeru-write` 进行重写
-  - 独立使用时，用户可查看 `fix-plan.json` 后手动调用 `sumeru-write` 重写指定章节
+   - worldbuilder 在编排流程时读取此文件，决定是否需要调用 `sumeru-write` 进行重写
+   - 独立使用时，用户可查看 `fix-plan.json` 后手动调用 `sumeru-write` 重写指定章节
 
 - **后续 Skill**：
-  - **sumeru-write**：读取 `fix-plan.json`，执行重写修复（由 worldbuilder 编排或用户手动调用）
-  - **sumeru-polish**：接收修复后的章节内容，进行文笔润色
-  - **sumeru-finalize**：接收修复后的章节内容，进行完稿校验和多平台导出
+   - **sumeru-write**：读取 `fix-plan.json`，执行重写修复（由 worldbuilder 编排或用户手动调用）
+   - **sumeru-polish**：接收修复后的章节内容，进行文笔润色
+   - **sumeru-finalize**：接收修复后的章节内容，进行完稿校验和多平台导出
 
 #### 三阶段数据流向
 ```
@@ -228,10 +170,8 @@ sumeru-write 章节
 合并问题清单（issues.json）
     ↓
 第三阶段：统一修复
-    ├─ 轻量修复 → 保存到 .sumeru/review/fixed/
+    ├─ 轻量修复 → 直接修改 chapters/（自动备份到 .sumeru/write/original/）
     └─ 重写修复 → 生成 fix-plan.json
-    ↓
-使用 --apply 应用到 chapters/（或供 worldbuilder 编排 write 重写）
     ↓
 供 polish 和 finalize 使用
 ```
@@ -240,46 +180,4 @@ sumeru-write 章节
 - 返工修改时直接读取问题清单定位需要调整的章节
 - 支持增量审查，新增章节时基于已有审查结果只检测新增内容
 - 修复完成后可再次调用自动验证问题是否解决
-
-### 使用示例
-```bash
-# 完整三阶段审查并自动修复所有问题（默认模式）
-/sumeru-review --all
-
-# 仅执行第一阶段：全局审查
-/sumeru-review --only-global
-
-# 仅执行第二阶段：章节细节审查
-/sumeru-review --only-chapter
-
-# 仅执行第三阶段：统一修复（使用已有问题清单）
-/sumeru-review --only-fix
-
-# 跳过全局审查，直接执行章节细节和统一修复
-/sumeru-review --all --skip-global
-
-# 跳过章节审查，直接使用已有章节数据执行统一修复
-/sumeru-review --all --skip-chapter
-
-# 仅执行字数检查与填充
-/sumeru-review --word-count --target-words 4000 --min-words 2500
-
-# 审查但不自动修复（仅生成报告）
-/sumeru-review --all --auto-fix false
-
-# 指定目标字数为3000字（番茄平台）
-/sumeru-review --all --target-words 3000
-
-# 使用comprehensive级别的修复强度
-/sumeru-review --all --fix-level comprehensive
-
-# 仅审查第1-10章的时间线和OOC问题
-/sumeru-review 第1-10章 --only timeline,ooc
-
-# 使用5个Agent并行生成章节概要后审查
-/sumeru-review --all --agent-count 5
-
-# 执行完整流程并输出详细修复报告
-/sumeru-review --all --fix-level comprehensive
-```
 - 字数填充记录可用于后续章节的字数参考
