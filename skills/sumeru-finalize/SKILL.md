@@ -205,8 +205,7 @@ flowchart LR
 
 #### 与其他 Skill 配合
 - **前置 Skill**：读取最终章节内容
-   - 默认从 `chapters/` 读取最新章节内容（经 review 修复和 polish 润色后的版本，如已使用 `--apply`）
-   - 如 `chapters/` 中未包含润色结果但 `.sumeru/polish/modified/` 存在（polish 未使用 `--apply`），则优先从润色 staging 区域读取
+   - 默认从 `chapters/` 读取最新章节内容（review 修复和 polish 润色直接修改 chapters/，无需额外操作）
 
 #### 数据复用
 - 可随时重新导出其他平台格式，无需重新校验

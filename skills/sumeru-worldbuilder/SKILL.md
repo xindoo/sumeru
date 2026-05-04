@@ -74,17 +74,16 @@ worldbuilder 负责以下数据流转和协调工作：
 [阶段检查点 3] 验证审查完成，检查 fix-plan.json 是否有重写修复项
     ↓
 {fix-plan.json 有重写修复项?}
-    →|是| [调用sumeru-write重写指定章节 → 保存到.sumeru/review/fixed/]
+    →|是| [调用sumeru-write重写指定章节 → 直接修改 chapters/（自动备份到 .sumeru/write/original/）]
     →|否| 继续
     ↓
-[调用 review --apply] 将轻量修复和重写结果应用到 chapters/ 目录
-    → 应用前自动备份原始章节到 .sumeru/write/original/
+[review 轻量修复已直接修改 chapters/，无需额外应用步骤]
     ↓
 [sumeru-polish] 内容润色（**润色所有章节，每个Agent最多3章**）
     → 输入: chapters/*.md, .sumeru/review/*.json
-    → 输出: .sumeru/polish/modified/*
+    → 输出: chapters/*.md（润色后直接修改，自动备份到 .sumeru/write/original/）, .sumeru/polish/*.json
     → ✅ **必须完成全本润色**
-    → 📝 **润色结果保存到 .sumeru/polish/modified/，使用 --apply 应用到 chapters/ 目录**
+    → 📝 **润色结果直接修改 chapters/，修改前自动备份到 .sumeru/write/original/**
     → ⚠️ **遵循全局3章/Agent约束**
     ↓
 [阶段检查点 4] 验证润色完成
@@ -99,8 +98,8 @@ worldbuilder 负责以下数据流转和协调工作：
 每个阶段完成后都会自动更新 `WORKBUILDER_PROGRESS.json`，任务重启时从上次未完成的阶段继续：
 - **大纲阶段**：确认 `chapter-outlines.json` 生成且包含完整章节列表
 - **创作阶段**：检查 `chapters/` 目录下已生成章节数与细纲一致
-- **审查阶段**：确认 `剧情审查报告.md` 生成且包含全本审查结果，确认 `fix-plan.json` 已生成。应用修复前检查 `.sumeru/write/original/` 是否已备份原始章节
-- **润色阶段**：确认 `.sumeru/polish/modified/` 目录下润色章节数与原章节数一致。应用润色前检查 `.sumeru/write/original/` 是否已备份原始章节
+- **审查阶段**：确认 `剧情审查报告.md` 生成且包含全本审查结果，确认 `fix-plan.json` 已生成。review 的轻量修复已直接修改 `chapters/`，修改前已自动备份到 `.sumeru/write/original/`
+- **润色阶段**：确认润色已直接修改 `chapters/` 中的文件。润色修改前已自动备份到 `.sumeru/write/original/`
 - **完稿阶段**：确认 `publish/` 目录下各平台格式导出完成
 
 ### 数据共享机制
@@ -122,27 +121,24 @@ flowchart LR
     B --> C[调用 topic 选题策划]
     C --> D[调用 outline 大纲设计]
     D --> E[调用 write 完整章节撰写]
-    E -->|✅ 全部章节完成| F[备份原始章节到 .sumeru/write/original/]
-    F --> G[调用 review 全本逻辑审查]
-    G --> H{fix-plan.json 有重写项?}
-    H -->|是| I[调用 write 重写指定章节]
-    I --> J[保存到 .sumeru/review/fixed/]
-    J --> K[调用 review --apply]
-    H -->|否| K
-    K --> L[调用 polish 全本内容润色]
-    L --> M[调用 polish --apply]
-    M --> N{润色确认?}
-    N -->|否| O[针对性调整润色]
-    O --> L
-    N -->|是| P[调用 finalize 完稿校验]
-    P --> Q[生成创作报告与作品文件]
+    E -->|✅ 全部章节完成| F[调用 review 全本逻辑审查]
+    F --> G{fix-plan.json 有重写项?}
+    G -->|是| H[调用 write 重写指定章节]
+    H --> I[直接修改 chapters/，自动备份到 .sumeru/write/original/]
+    I --> J[调用 polish 全本内容润色]
+    G -->|否| J
+    J --> K{润色确认?}
+    K -->|否| L[针对性调整润色]
+    L --> J
+    K -->|是| M[调用 finalize 完稿校验]
+    M --> N[生成创作报告与作品文件]
     
     subgraph 进度保存
-        R[WORKBUILDER_PROGRESS.json]
-        E -->|保存进度| R
-        G -->|保存进度| R
-        M -->|保存进度| R
-        P -->|保存进度| R
+        O[WORKBUILDER_PROGRESS.json]
+        E -->|保存进度| O
+        F -->|保存进度| O
+        J -->|保存进度| O
+        M -->|保存进度| O
     end
 ```
 
@@ -152,22 +148,20 @@ flowchart LR
 3. **选题阶段**：基于收集到的完整需求生成3-5个精准匹配的选题方案供选择，确定后进入大纲设计，完成后更新进度文件
 4. **大纲阶段**：先输出世界观与人设，确认后生成完整大纲和**所有章节细纲**，完成后更新进度文件
 5. **创作阶段**：按细纲驱动批量创作所有章节，支持并行生成，**必须完成所有章节**后才进入下一阶段（遵循全局3章/Agent约束），完成后更新进度文件
-6. **审查阶段**：调用 `sumeru-review --all` 执行三阶段审查修复流程（遵循全局3章/Agent约束）：
+6. **审查阶段**：调用 `sumeru-review` 执行三阶段审查修复流程（遵循全局3章/Agent约束）：
     - **第一阶段：全局审查**：分析整体剧情脉络、时间线、设定一致性、冲突点分布、伏笔回收状态
     - **第二阶段：章节细节审查**：逐章检查字数、时间线、人物OOC、物品状态、场景质量、伏笔设置
     - **第三阶段：统一修复**：
       - 合并全局和章节问题，按严重程度制定修复计划
-      - 执行**轻量修复**（文字修正、段落调整、字数填充等），保存到 `.sumeru/review/fixed/`
+      - 执行**轻量修复**（文字修正、段落调整、字数填充等），直接修改 `chapters/` 文件（自动备份到 `.sumeru/write/original/`）
       - 对需要**重写修复**的章节，生成 `fix-plan.json`，记录问题与修复建议
     - **字数检查与填充**：在第二阶段逐章统计字数，对不足的章节自动填充内容（强化场景描写、丰富对话、补充心理活动等）
     - **自动修复所有问题**：不只是提出问题，而是自动修复所有轻量级问题
-    - worldbuilder 读取 `fix-plan.json`，如有重写项则调用 `sumeru-write` 重写指定章节，保存到 `.sumeru/review/fixed/`
-    - 调用 `sumeru-review --apply` 将修复结果应用到 `chapters/` 目录（应用前自动备份原始章节到 `.sumeru/write/original/`）
+    - worldbuilder 读取 `fix-plan.json`，如有重写项则调用 `sumeru-write` 重写指定章节，直接修改 `chapters/`
     - 修复完成后重新验证，确保所有问题已解决
     - 完成后更新进度文件
-7. **润色阶段**：调用 `sumeru-polish --all` 进行全本内容润色（遵循全局3章/Agent约束），提供多种润色风格选项（精简/详写/抒情/热血等）
-    - 润色完成后，结果保存到 `.sumeru/polish/modified/`
-    - 调用 `sumeru-polish --apply` 将润色结果应用到 `chapters/` 目录（应用前自动备份原始章节到 `.sumeru/write/original/`）
+7. **润色阶段**：调用 `sumeru-polish` 进行全本内容润色（遵循全局3章/Agent约束），提供多种润色风格选项（精简/详写/抒情/热血等）
+    - 润色完成后，直接修改 `chapters/` 中的文件（修改前自动备份到 `.sumeru/write/original/`）
     - 润色过程和结果记录到 `.sumeru/polish/` 目录
     - 完成后更新进度文件
 8. **完稿阶段**：调用 `sumeru-finalize` 对所有润色后的章节进行完稿校验（遵循全局3章/Agent约束），从 `chapters/` 目录读取最终内容（已包含review修复和polish润色后的结果），输出多种格式（Markdown/HTML/EPUB）到 `publish/` 目录，生成创作总结报告，完成后更新进度文件为最终完成状态
@@ -193,12 +187,10 @@ flowchart LR
 10. 📱 **发布平台**：计划发布到哪个平台，适配对应平台的节奏和字数要求
 11. ⚠️ **禁忌内容**：明确不想要的情节、设定、人物类型
 
-#### 交互模式参数
-| 参数名 | 说明 |
-|--------|------|
-| `--interactive` | 强制开启全量交互式提问，即使用户提供了充足信息也会完整走一遍需求确认流程 |
-| `--quick` | 快速模式，仅提问最核心的3个问题（题材确认、篇幅、核心爽点），其他使用默认值 |
-| `--no-interactive` | 关闭交互式提问，直接基于已有信息生成，适合明确知道自己需求的用户 |
+#### 交互模式
+- **详细引导模式**：强制开启全量交互式提问，即使用户提供了充足信息也会完整走一遍需求确认流程
+- **快速模式**：仅提问最核心的3个问题（题材确认、篇幅、核心爽点），其他使用默认值
+- **静默模式**：关闭交互式提问，直接基于已有信息生成，适合明确知道自己需求的用户
 
 #### 需求确认机制
 - 所有用户回答自动保存到 `.sumeru/session/user-requirements.json`，全流程各阶段共享使用
@@ -234,61 +226,55 @@ flowchart LR
 
 ### 参数说明
 
-| 参数名 | 类型 | 必填 | 默认值 | 说明 |
-|--------|------|------|--------|------|
-| `genre` | string | 是 | - | 作品类型，如：玄幻、都市、仙侠、科幻、言情、悬疑等 |
-| `keywords` | string | 是 | - | 核心创意关键词，支持多个关键词用"+"连接，如："废柴逆袭+系统流+赘婿" |
-| `--title` | string | 否 | 自动生成 | 指定作品标题，如不提供则自动生成 |
-| `--length` | string | 否 | "medium" | 预期篇幅长度：short(20万字内)/medium(20-50万字)/long(50-100万字)/epic(100万字以上) |
-| `--style` | string | 否 | "balanced" | 写作风格：fast(快节奏)/balanced(均衡)/detailed(详写)/literary(文艺) |
-| `--tone` | string | 否 | "neutral" | 整体调性：humorous(幽默)/serious(严肃)/inspiring(励志)/dark(暗黑) |
-| `--output-dir` | string | 否 | "./output" | 作品输出目录路径 |
-| `--resume` | string | 否 | - | 中断恢复，传入上次的创作会话ID |
-| `--skip-stages` | string | 否 | - | 跳过指定阶段，逗号分隔：topic,outline,write,review,polish,final |
-| `--auto-confirm` | boolean | 否 | false | 是否自动确认所有中间步骤（无人值守模式） |
+创建时需要提供以下信息：
+- **作品类型**（必填）：如玄幻、都市、仙侠、科幻、言情、悬疑等
+- **核心创意关键词**（必填）：核心创意关键词，支持多个关键词用"+"连接，如"废柴逆袭+系统流+赘婿"
+
+可选信息（不提供则使用默认值或自动生成）：
+- **作品标题**：如不提供则自动生成
+- **预期篇幅**：短篇（20万字内）/中篇（20-50万字）/长篇（50-100万字）/超长篇（100万字以上），默认中篇
+- **写作风格**：快节奏/均衡/详写/文艺，默认均衡
+- **整体调性**：幽默/严肃/励志/暗黑，默认中立
+- **输出目录**：作品输出目录路径，默认 ./output
+- **中断恢复**：传入上次的创作会话ID，可从断点恢复
+- **跳过阶段**：跳过指定阶段（topic/outline/write/review/polish/final），适用于续创或团队分工
 
 ### 使用示例
 
 #### 基础使用
-```bash
+```
 # 最简单的调用方式，只指定类型和关键词
 /worldbuilder 玄幻 "废柴逆袭+系统流"
 
 # 都市言情作品，指定标题
-/worldbuilder 言情 "霸道总裁+契约恋爱" --title "总裁的契约新娘"
+/worldbuilder 言情 "霸道总裁+契约恋爱" 标题"总裁的契约新娘"
 
 # 科幻悬疑，长篇幅，快节奏风格
-/worldbuilder 科幻 "时间循环+密室解谜" --length epic --style fast
+/worldbuilder 科幻 "时间循环+密室解谜" 长篇 快节奏
 ```
 
 #### 进阶使用
-```bash
+```
 # 指定详细参数的完整调用
-/worldbuilder 仙侠 "重生+无敌流+宗门" \
-    --title "重生之太上掌门" \
-    --length long \
-    --style detailed \
-    --tone inspiring \
-    --output-dir "./my-novels/taishang" \
-    --auto-confirm false
+/worldbuilder 仙侠 "重生+无敌流+宗门" 标题"重生之太上掌门" 长篇 详写风格 励志调性
 
 # 从中断点恢复创作
-/worldbuilder 玄幻 "废柴逆袭+系统流" --resume "session-20240315-abc123"
+/worldbuilder 玄幻 "废柴逆袭+系统流" 恢复上次创作
 
 # 跳过选题阶段，直接从已有大纲继续创作
-/worldbuilder 都市 "职场+重生" --skip-stages topic
+/worldbuilder 都市 "职场+重生" 跳过选题阶段
 ```
 
 #### 多风格组合
-```bash
+```
 # 幽默风都市修仙
-/worldbuilder 都市 "修仙+打工+搞笑" --style balanced --tone humorous
+/worldbuilder 都市 "修仙+打工+搞笑" 均衡风格 幽默调性
 
 # 暗黑系悬疑推理
-/worldbuilder 悬疑 "连环杀人+心理侧写+反转" --style detailed --tone dark
+/worldbuilder 悬疑 "连环杀人+心理侧写+反转" 详写风格 暗黑调性
 
 # 热血励志竞技
-/worldbuilder 竞技 "篮球+天赋+逆袭" --style fast --tone inspiring
+/worldbuilder 竞技 "篮球+天赋+逆袭" 快节奏 励志调性
 ```
 
 ### 错误处理说明
@@ -314,44 +300,44 @@ flowchart LR
 ### 进阶使用场景
 
 #### 场景1：团队协作创作
-```bash
+```
 # 策划完成选题和大纲后，交由写手继续
-/worldbuilder 玄幻 "废柴逆袭+系统流" --skip-stages write,review,polish,final
+/worldbuilder 玄幻 "废柴逆袭+系统流" 跳过写作、审查、润色、完稿阶段
 
 # 写手接手，从创作阶段继续
-/worldbuilder 玄幻 "废柴逆袭+系统流" --skip-stages topic,outline --resume "session-xxx"
+/worldbuilder 玄幻 "废柴逆袭+系统流" 跳过选题、大纲阶段 恢复上次创作
 ```
 
 #### 场景2：多版本对比创作
-```bash
+```
 # 生成多个版本进行对比
-/worldbuilder 言情 "穿越+宫斗" --title "清宫·甄嬛传" --style literary
-/worldbuilder 言情 "穿越+宫斗" --title "清宫·步步惊心" --style fast
+/worldbuilder 言情 "穿越+宫斗" 标题"清宫·甄嬛传" 文艺风格
+/worldbuilder 言情 "穿越+宫斗" 标题"清宫·步步惊心" 快节奏
 ```
 
 #### 场景3：定制化系列作品
-```bash
+```
 # 第一部
-/worldbuilder 玄幻 "系统+升级" --title "武帝降临" --length medium
+/worldbuilder 玄幻 "系统+升级" 标题"武帝降临" 中篇
 
 # 第二部（沿用世界观）
-/worldbuilder 玄幻 "系统+升级" --skip-stages topic,outline --resume "session-wudi1" --title "武帝降临2"
+/worldbuilder 玄幻 "系统+升级" 跳过选题、大纲阶段 恢复上次创作 标题"武帝降临2"
 ```
 
 #### 场景4：A/B测试优化
-```bash
+```
 # 测试不同开篇风格
-/worldbuilder 都市 "重生+商战" --skip-stages write,review,polish,final
+/worldbuilder 都市 "重生+商战" 跳过写作、审查、润色、完稿阶段
 # 手动修改大纲中的开篇设定后继续
-/worldbuilder 都市 "重生+商战" --skip-stages topic --resume "session-xxx"
+/worldbuilder 都市 "重生+商战" 跳过选题阶段 恢复上次创作
 ```
 
 #### 场景5：批量生成素材库
-```bash
+```
 # 生成多个选题方案用于后续选择
-/worldbuilder 玄幻 "废柴" --skip-stages outline,write,review,polish,final
-/worldbuilder 玄幻 "系统" --skip-stages outline,write,review,polish,final
-/worldbuilder 玄幻 "重生" --skip-stages outline,write,review,polish,final
+/worldbuilder 玄幻 "废柴" 跳过大纲、写作、审查、润色、完稿阶段
+/worldbuilder 玄幻 "系统" 跳过大纲、写作、审查、润色、完稿阶段
+/worldbuilder 玄幻 "重生" 跳过大纲、写作、审查、润色、完稿阶段
 ```
 
 #### 数据持久化规范
@@ -375,16 +361,14 @@ flowchart LR
 │   └── chapter-outlines.json # **完整章节细纲（核心输出）**
 ├── write/            # 创作阶段输出
 │   ├── draft/        # 章节草稿
-│   ├── original/     # 原始章节备份（review/polish apply 前自动备份）
+│   ├── original/     # 原始章节备份（review/polish修改前自动备份）
 │   └── progress.json # 创作进度跟踪
 ├── review/           # 审查阶段输出
 │   ├── timeline.json # 时间线数据
 │   ├── issues.json   # 问题清单
 │   ├── fix-plan.json # 重写修复计划
-│   ├── fixed/        # 轻量修复后的章节 staging 目录
 │   └── plot-map.json # 剧情脉络图
 ├── polish/           # 润色阶段输出
-│   ├── modified/     # 润色后版本 staging 目录
 │   └── diff.json     # 修改对比记录
 └── finalize/         # 完稿阶段输出
     ├── clean/        # 纯净版全文
@@ -445,21 +429,14 @@ flowchart LR
         "issues_fixed": 6,
         "issues_rewritten": 2
       },
-      "chapters_repaired": [
-        ".sumeru/review/fixed/015-误会加深.md",
-        ".sumeru/review/fixed/042-时间线冲突.md"
-      ],
-      "fix_plan_generated": true,
-      "applied": true
+      "fix_plan_generated": true
     },
     "polish": {
       "status": "in_progress",
       "started_at": "2024-03-15T15:00:00",
       "progress": "60%",
       "polish_level": "moderate",
-      "style": "小白爽文",
-      "modified_dir": ".sumeru/polish/modified/",
-      "applied": false
+      "style": "小白爽文"
     },
     "finalize": {
       "status": "pending"
@@ -472,8 +449,8 @@ flowchart LR
 1. **自动保存**：每完成一个阶段自动将数据写入对应目录，支持幂等写入
 2. **进度追踪**：每个阶段完成后自动更新 `WORKBUILDER_PROGRESS.json`，记录阶段状态与完成时间
 3. **版本控制**：关键节点自动生成版本快照，命名格式 `{stage}-{timestamp}.json`
-4. **断点恢复**：使用 `--resume` 参数时自动从 `.sumeru/` 目录读取对应阶段数据
-5. **清理规则**：支持 `--clean` 参数清理所有中间数据，默认保留最近3个版本
+4. **断点恢复**：恢复创作时自动从 `.sumeru/` 目录读取对应阶段数据
+5. **清理规则**：支持清理所有中间数据，默认保留最近3个版本
 6. **数据复用**：可直接引用其他项目的 `.sumeru/` 目录数据，实现世界观/人设复用
 
 ### 高级配置：自定义阶段钩子

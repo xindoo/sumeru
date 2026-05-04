@@ -41,19 +41,19 @@ type: skill
 
 ```bash
 # 生成所有章节（读取细纲，自动并行）
-/sumeru-write --all
+/sumeru-write 全部章节
 
 # 生成指定范围章节
 /sumeru-write 第1-50章
 
 # 生成特定卷的所有章节
-/sumeru-write --volume 1
+/sumeru-write 第1卷
 
 # 生成特定章节
 /sumeru-write 第3章,第5章,第10章
 
-# 指定并行度生成
-/sumeru-write --all --parallel 5
+# 批量并行创作指定范围
+/sumeru-write 第1-100章 批量并行
 ```
 
 #### 细纲输入格式支持
@@ -61,11 +61,11 @@ type: skill
 支持直接传入单章细纲：
 
 ```bash
-# 使用JSON格式细纲生成单章
-/sumeru-write 第3章 --outline '{"chapterTitle":"...","coreEvent":"..."}'
+# 使用自然语言描述生成单章
+/sumeru-write 第3章 "主角在拍卖会上获得神秘功法"
 
-# 从文件读取细纲
-/sumeru-write 第3章 --outline-file ./custom-outline-3.json
+# 基于已有细纲生成
+/sumeru-write 第3章 按细纲生成
 ```
 
 #### 细纲数据结构验证
@@ -160,7 +160,7 @@ flowchart LR
 - `chapter-meta.json`：每章元数据，包含核心事件、出场人物、爽点位置、伏笔记录
 - `character-state.json`：人物状态动态跟踪，记录各时间点人物能力、关系、状态变化
 - `used-outlines.json`：已使用的章节细纲记录，支持增量生成
-- `original/`：原始章节文件备份目录。当 review 或 polish 使用 `--apply` 参数时，原始章节文件会先备份到 `.sumeru/write/original/` 目录，确保可回滚
+- `original/`：原始章节文件备份目录。当 review 或 polish 修改 `chapters/` 文件时，原始章节文件会先自动备份到 `.sumeru/write/original/` 目录，确保可回滚
 
 #### 与其他 Skill 配合
 - **前置 Skill**：自动读取 `.sumeru/outline/` 目录的大纲数据
