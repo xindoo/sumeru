@@ -131,5 +131,5 @@ type: skill
 
 #### 与其他 Skill 配合
 此 skill 生成的 `options.json` 可以被 `sumeru-outline` skill 自动读取：
-- `sumeru-outline` 可以通过 `--load-from .sumeru/topic/options.json` 复用选题数据
+- `sumeru-outline` 可以复用选题数据（通过自然语言指定"复用已有选题数据"）
 - 大纲设计阶段会自动继承选题中的核心设定、金手指设计等内容

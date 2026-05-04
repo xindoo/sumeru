@@ -39,43 +39,38 @@ skills/
 ```bash
 # 选题策划：生成多套选题方案与市场分析
 /sumeru-topic <题材类型> "<核心关键词>"
-/sumeru-topic 玄幻 "系统+签到+无敌" --platform=起点
-/sumeru-topic 言情 "穿越+宫斗+甜宠" --audience=女频 --length=中篇
+/sumeru-topic 玄幻 "系统+签到+无敌" 起点平台
+/sumeru-topic 言情 "穿越+宫斗+甜宠" 女频 中篇
 
 # 大纲设计：生成完整世界观、人设、剧情大纲和**完整章节细纲**
 /sumeru-outline "<核心创意描述>"
 /sumeru-outline "重生2000年靠互联网创业"
-/sumeru-outline --load-from .sumeru/topic/options.json # 复用已有选题数据
+/sumeru-outline 复用已有选题数据 # 复用已有选题数据
 
 # 章节撰写：生成/续写/重写章节内容（**支持细纲驱动并行生成**）
-/sumeru-write <章节号> "<章节概要>" [参数]
-/sumeru-write 第3章 "主角首次使用金手指震惊众人" --style xianxia --cool-face-slap --words 2500
-/sumeru-write 第5章 --continue # 续写已有内容
-/sumeru-write --all # 从细纲生成所有章节（并行）
-/sumeru-write --all --parallel 5 # 指定并行度生成所有章节
-/sumeru-write 第1-100章 --parallel 5 # 批量并行创作指定范围
+/sumeru-write <章节号> "<章节概要>"
+/sumeru-write 第3章 "主角首次使用金手指震惊众人" 仙侠风格 强化爽点 2500字
+/sumeru-write 第5章 续写 # 续写已有内容
+/sumeru-write 全部章节 # 从细纲生成所有章节（并行）
+/sumeru-write 第1-100章 批量并行创作指定范围
 
 # 逻辑审查：校验剧情一致性、时间线、人物OOC等问题
 /sumeru-review <章节范围>
 /sumeru-review 第1-50章
-/sumeru-review --all # 审查全部内容
-/sumeru-review 第1-20章 --only timeline,ooc # 仅检查指定问题类型
-/sumeru-review --only-summary --agent-count 5 # 仅生成章节概要（5个Agent并行）
-/sumeru-review --skip-summary # 跳过概要生成，直接使用已有的概要进行审查
-/sumeru-review --all --agent-count 3 --task-split chunk # 使用3个Agent的chunk模式
-/sumeru-review 第1-100章 --full-chapters 5,10,15 # 生成所有概要，对指定章节进行完整审查
+/sumeru-review 审查全部内容
+/sumeru-review 第1-20章 仅检查时间线和人物OOC
 
 # 内容润色：优化文笔、节奏、爽点等
-/sumeru-polish <章节范围> [参数]
-/sumeru-polish 第10章 --level 2 --style 小白爽文 --focus 爽点强化
-/sumeru-polish 第1-3章 --level 1 # 轻度润色，优化表达流畅度
-/sumeru-polish 第5章 --deep --focus 节奏收紧,对话优化
+/sumeru-polish <章节范围>
+/sumeru-polish 第10章 中度润色 小白爽文风格 强化爽点
+/sumeru-polish 第1-3章 轻度润色
+/sumeru-polish 第5章 深度润色 节奏收紧+对话优化
 
 # 完稿校验：检查错误+导出平台适配格式
-/sumeru-finalize [参数]
-/sumeru-finalize --export qidian # 导出起点平台格式
-/sumeru-finalize --export all # 导出全平台格式
-/sumeru-finalize --replace --segment # 批量替换+自动分段
+/sumeru-finalize
+/sumeru-finalize 导出起点格式
+/sumeru-finalize 导出全平台格式
+/sumeru-finalize 批量替换+自动分段
 ```
 
 ## Skill核心功能概览
@@ -86,7 +81,7 @@ skills/
 - 交互式需求引导，完善创作参数，确保产出符合预期
 - 断点续传支持，创作中断后可恢复进度
 - 多版本对比、团队协作、系列作品创作等进阶场景支持
-**核心参数**：`--title`、`--length`、`--style`、`--tone`、`--resume`、`--skip-stages`、`--auto-confirm`
+**核心参数**：作品类型、核心关键词、标题、篇幅、风格、调性
 
 ### 2. sumeru-topic 选题策划Skill
 **定位**：创意生成与市场分析，适用于"不知道写什么"、"帮我想个题材"、"分析什么题材火"等需求
@@ -95,7 +90,7 @@ skills/
 - 生成3-5套差异化选题方案，包含金手指设计、核心卖点、爽点模式
 - 多维度可行性评估：市场热度、竞争格局、受众规模、创作难度、变现潜力
 - 风险提示：政策风险、市场饱和风险、题材生命周期预警
-**核心参数**：`--platform`、`--audience`、`--length`、`--load-existing`
+**核心参数**：目标平台、目标受众、预期篇幅
 
 ### 3. sumeru-outline 大纲设计Skill
 **定位**：故事框架搭建，适用于"写个小说大纲"、"设计人设"、"做世界观设定"等需求
@@ -106,7 +101,7 @@ skills/
 - **完整章节细纲：生成所有章节的详细细纲，保存为 chapter-outlines.json，供并行写作使用**
 - 爽点排布：遵循黄金爽点密度公式，规划关键爽点、转折点、悬念点位置
 - 自动合规检查：禁止使用真实人名/地名，避免侵权风险
-**核心参数**：`--load-from`、`--allow-mapping`、`--style`
+**核心参数**：复用数据源、大纲风格
 
 ### 4. sumeru-write 章节撰写Skill
 **定位**：内容生成器，适用于"帮我写一章"、"续写内容"、"生成XX情节"等需求
@@ -116,7 +111,7 @@ skills/
 - 保持人物性格与剧情逻辑一致性，避免OOC
 - 支持多种写作模式：续写、重写、扩写、精简、POV切换
 - 多Agent并行批量创作，支持同时生成多章内容，效率提升5倍+，**每个Agent最多负责3个章节**
-**核心参数**：`--style`、`--words`、`--pace`、`--pov`、`--batch`、`--parallel`、`--continue`、`--all`、`--outline`
+**核心参数**：写作风格、目标字数、节奏、视角、并行模式
 
 ### 5. sumeru-review 逻辑审查Skill
 **定位**：内容质检官，适用于"检查有没有bug"、"时间线对不对"、"有没有剧情矛盾"等需求
@@ -127,7 +122,7 @@ skills/
 - 逻辑漏洞检测：因果关系、人物动机、能力设定、社会常识合理性检查
 - OOC检测：人物性格、价值观、能力、语言风格、行为模式一致性检查
 - 伏笔追踪：记录所有伏笔位置、类型、回收状态，提供回收建议
-**核心参数**：`--all`、`--only`、`--dir`、`--word-count`、`--target-words`、`--auto-fix`、`--fix-level`、`--apply`、`--agent-count`、`--task-split`
+**核心参数**：审查范围、检查类型、字数检查
 
 ### 6. sumeru-polish 内容润色Skill
 **定位**：内容优化器，适用于"帮我润色一下"、"改改文笔"、"优化节奏"等需求
@@ -135,7 +130,7 @@ skills/
 - 3级润色级别：轻度（优化表达）→中度（重构结构）→深度（逐字打磨）
 - 多风格适配：小白爽文、精品文、古风、都市现实、悬疑、科幻等风格转换
 - 针对性优化：节奏收紧、爽点强化、对话优化、文笔提升、悬念增强
-**核心参数**：`--level`、`--deep`、`--style`、`--focus`、`--apply`
+**核心参数**：润色级别、目标风格、优化重点
 
 ### 7. sumeru-finalize 完稿校验Skill
 **定位**：发布前最后把关，适用于"完稿检查"、"导出平台格式"、"批量处理"等需求
@@ -145,7 +140,7 @@ skills/
 - 格式标准化：章节标题、段落格式、标点规范统一
 - 多平台导出：适配起点、番茄、晋江、纵横等主流平台格式
 - 批量处理：全局替换、正则替换、自动分段等工具功能
-**核心参数**：`--export`、`--replace`、`--segment`、`--dir`、`--output-dir`
+**核心参数**：导出平台、批量替换、自动分段
 
 ## 数据持久化规范
 ### 路径分类规则
@@ -160,12 +155,10 @@ skills/
 ├── outline/          # 大纲阶段中间数据
 │   └── chapter-outlines.json  # **完整章节细纲（write阶段的输入）**
 ├── write/            # 创作阶段中间数据
-│   └── original/     # 原始章节备份（--apply前自动备份）
+│   └── original/     # 原始章节备份（review/polish修改前自动备份）
 ├── review/           # 审查阶段中间数据
-│   ├── fixed/        # 轻量修复后的章节（staging区域，需--apply应用到chapters/）
 │   └── fix-plan.json # 重写修复计划（标记需要重写的章节）
 ├── polish/           # 润色阶段中间数据
-│   └── modified/     # 润色后的章节（staging区域，需--apply应用到chapters/）
 └── finalize/         # 完稿阶段中间数据
 ```
 
@@ -188,7 +181,7 @@ skills/
    - 空的`scripts/`目录，存放执行逻辑
    - 空的`references/`目录，存放领域知识与模板
 3. Skill描述中必须包含触发关键词与排除规则，确保被正确识别调用
-4. 命令参数设计需与现有Skill保持风格一致，避免自定义特殊格式
+4. 命令参数采用自然语言描述，避免命令行风格（如 `--param`），保持用户友好
 
 ## 边界与权限说明
 ### ✅ 可直接执行
@@ -219,7 +212,7 @@ skills/
    - **适用场景**：写作、审查、润色、校验、细纲生成等所有无前后依赖的章节级批量操作
    - **调度计算**：所需Agent数 = ceil(总章节数 / 3)，分配策略为按章节顺序连续分配
    - **Skill内引用方式**：各Skill中使用"⚠️ 遵循全局约束：每个子Agent最多负责3个章节（详见 AGENTS.md '子Agent并行处理规则'）"格式引用，不再完整重述
-6. **Staging Area 规则（全局强制约束）**：review修复和polish润色的结果必须先保存到各自`.sumeru/`子目录的staging区域（`.sumeru/review/fixed/`、`.sumeru/polish/modified/`），不得直接覆盖`chapters/`目录。用户通过`--apply`参数或worldbuilder编排时，才将staging内容应用到`chapters/`，应用前自动备份原始章节到`.sumeru/write/original/`。
+6. **自动备份规则（全局强制约束）**：review修复和polish润色直接修改 `chapters/` 目录中的文件，修改前自动备份原始章节到 `.sumeru/write/original/`，确保可回滚。无需用户手动确认应用步骤。
 7. **Skill间解耦规则**：禁止下游Skill直接调用上游Skill。review不得直接调用sumeru-write进行重写修复，而是生成修复计划（fix-plan.json），由worldbuilder编排或用户手动调用sumeru-write处理。
 
 ## 核心文件索引

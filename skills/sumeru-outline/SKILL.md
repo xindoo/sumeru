@@ -345,7 +345,7 @@ flowchart LR
 ```
 
 #### 与其他 Skill 配合
-- **前置 Skill**：可读取 `sumeru-topic` 的 `options.json`（使用 `--load-from` 参数）
+- **前置 Skill**：可读取 `sumeru-topic` 的 `options.json`（通过自然语言指定"复用已有选题数据"）
 - **后续 Skill**：生成的数据可供 `sumeru-write`、`sumeru-review` 使用
   - `sumeru-write` 自动读取 `chapter-outlines.json`，支持**单章或批量并行生成**所有章节
   - `sumeru-review` 直接读取大纲数据校验剧情偏离度
