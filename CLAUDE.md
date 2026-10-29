@@ -14,6 +14,7 @@
 skills/
 ├── sumeru-worldbuilder/  # 世界构建师Skill，统筹全流程创作，负责整个故事世界的搭建与落地
 ├── sumeru-topic/         # 选题策划Skill，市场分析+创意生成
+├── sumeru-deconstruct/   # 拆书分析Skill，结构拆解+节奏曲线+仿写模板（不抄文本）
 ├── sumeru-outline/       # 大纲设计Skill，世界观+人设+剧情框架
 ├── sumeru-write/         # 章节撰写Skill，单章/批量创作+续写
 ├── sumeru-review/        # 逻辑审查Skill，时间线+剧情+人物一致性校验
@@ -25,6 +26,82 @@ skills/
 - `SKILL.md`：Skill元数据定义与使用说明
 - `scripts/`（按需创建）：存放Skill执行所需的脚本文件
 - `references/`（按需创建）：存放参考资料、模板、知识库等资源
+
+## 章节篇幅口径（全局统一）
+
+所有Skill必须使用同一套篇幅/字数口径，禁止各自定义：
+
+| 篇幅 | 目标总字数 | 建议章节区间* | 适用场景 |
+|------|-----------|--------------|----------|
+| 短篇 | 20 万字 | 40-70 章 | 试水、短平快、平台征文 |
+| 中篇 | 20-50 万字 | 70-170 章 | 主流连载起步 |
+| 长篇 | 50-100 万字 | 170-340 章 | 主流商业连载 |
+| 超长篇 | 100 万字以上 | 340 章以上 | 长线养书、大IP |
+
+\* 按单章 3000 字基准估算（区间 = 总字数 ÷ 3000，允许 ±15%）。
+
+### 单章字数基准（按平台）
+
+| 平台 | 单章建议字数 | 说明 |
+|------|-------------|------|
+| 起点 | 3000-5000 | 付费订阅，长章更有黏性 |
+| 番茄 | 2000-3000 | 免费+广告，短章提升完读率 |
+| 晋江 | 2500-4000 | 女频为主，重情绪密度 |
+| 纵横 | 3000-6000 | 男频长篇 |
+| 17K | 2000-4000 | 灵活 |
+
+未指定平台时默认 **3000 字/章**。章节总数 = ceil(目标总字数 / 单章字数)，由 `skills/sumeru-outline/scripts/plan-chapters.py` 计算，不要手算。
+
+## 合规底线（写死，不可协商）
+
+1. **人名**：禁止真实人物、知名 IP 角色名及其改字/拆字版本。
+2. **地名**：禁止真实国家/省市/区县/山川/景点全称；现实题材仅可使用「帝都」「魔都」这类泛称。
+3. **机构**：禁止真实公司、银行、学校、法院、军队番号、赛事、俱乐部，以及谐音碰瓷版本。
+4. **宗教/民族**：禁止真实宗教人物与场所，禁止民族/地域歧视性设定。
+5. **技术细节**：禁止可复现的危险品配方、武器制造、黑客攻击、诈骗操作。
+6. **判定基准**：统一使用 `skills/sumeru-outline/references/ip-blocklist.md`，该文件是唯一黑名单源。
+7. **门禁**：`compliance-check.json` 的 `passed` 不为 `true` 时，禁止进入写作阶段；完稿阶段 `build.py` 扫描命中禁用名称时，禁止导出。
+
+## 公共工具脚本（确定性保障）
+
+涉及统计、校验、导出的环节一律优先调用脚本，不要靠模型心算：
+
+```bash
+# 1. 章节规划 / 细纲骨架 / 细纲校验（outline）
+python3 skills/sumeru-outline/scripts/plan-chapters.py --total-words 1000000 --chapter-words 3000 --volumes 5
+python3 skills/sumeru-outline/scripts/plan-chapters.py --total-words 300000 --emit-skeleton
+python3 skills/sumeru-outline/scripts/plan-chapters.py --validate .sumeru/outline/chapter-outlines.json
+
+# 2. 章节结构 / 命名 / 缺章校验（write）
+python3 skills/sumeru-write/scripts/check-chapters.py --chapters chapters \
+  --outline .sumeru/outline/chapter-outlines.json
+
+# 3. 字数统计（review）
+python3 skills/sumeru-review/scripts/chapter-word-counter.py --dir chapters
+
+# 4. 时间线机器校验（review）
+python3 skills/sumeru-review/scripts/validate-timeline.py \
+  --timeline .sumeru/review/timeline.json --chapters chapters
+
+# 5. 拆书结构统计 + 报告原创性检查（deconstruct）
+python3 skills/sumeru-deconstruct/scripts/analyze-book.py --file 参考书.txt
+python3 skills/sumeru-deconstruct/scripts/check-derivative.py \
+  --source 参考书.txt --output 拆书报告_某书.md --forbid "原作主角名"
+
+# 6. 完稿检查 + 多平台导出（finalize）
+python3 skills/sumeru-finalize/scripts/build.py --check-only
+python3 skills/sumeru-finalize/scripts/build.py --platform all --format md,txt,html,epub --title "书名"
+```
+
+脚本退出码约定：`0` 通过 / `1` 存在错误 / `2` 参数或环境错误。
+
+### 测试
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+新增或修改 `scripts/` 下任何脚本，必须同步补充 `tests/test_tools.py` 用例。
 
 ## 常用命令速查
 ### 全流程创作
@@ -53,6 +130,10 @@ skills/
 /sumeru-write 第5章 续写 # 续写已有内容
 /sumeru-write 全部章节 # 从细纲生成所有章节（并行）
 /sumeru-write 第1-100章 批量并行创作指定范围
+
+# 拆书分析：拆结构、节奏、人物功能位（不抄文本）
+/sumeru-deconstruct <原作文件或章节目录>
+/sumeru-deconstruct 参考书.txt 分析黄金三章和爽点节奏
 
 # 逻辑审查：校验剧情一致性、时间线、人物OOC等问题
 /sumeru-review <章节范围>
@@ -83,7 +164,16 @@ skills/
 - 多版本对比、团队协作、系列作品创作等进阶场景支持
 **核心参数**：作品类型、核心关键词、标题、篇幅、风格、调性
 
-### 2. sumeru-topic 选题策划Skill
+### 2. sumeru-deconstruct 拆书分析Skill
+**定位**：结构研究，适用于"帮我拆书"、"分析这本书为什么火"、"仿写这本书"等需求
+**核心能力**：
+- 机械统计：章节字数、对话占比、段句长、章末钩子类型、视角、高频重复短语
+- 十二维结构拆解：黄金三章、人物功能位、爽点密度、伏笔台账、换图节奏、信息释放
+- 抽象化模板：所有角色/地名替换为功能位占位符，只输出可复用结构
+- 原创性门禁：报告与原作最长连续重合 ≤12 字，原作专名零出现
+**核心参数**：原作范围、分析重点、是否生成仿写方案
+
+### 3. sumeru-topic 选题策划Skill
 **定位**：创意生成与市场分析，适用于"不知道写什么"、"帮我想个题材"、"分析什么题材火"等需求
 **核心能力**：
 - 市场热点分析，基于各大平台榜单数据提供趋势参考
@@ -92,7 +182,7 @@ skills/
 - 风险提示：政策风险、市场饱和风险、题材生命周期预警
 **核心参数**：目标平台、目标受众、预期篇幅
 
-### 3. sumeru-outline 大纲设计Skill
+### 4. sumeru-outline 大纲设计Skill
 **定位**：故事框架搭建，适用于"写个小说大纲"、"设计人设"、"做世界观设定"等需求
 **核心能力**：
 - 完整世界观设定：世界背景、力量体系、社会规则、地理设定（全部虚构名称，合规避坑）
@@ -103,7 +193,7 @@ skills/
 - 自动合规检查：禁止使用真实人名/地名，避免侵权风险
 **核心参数**：复用数据源、大纲风格
 
-### 4. sumeru-write 章节撰写Skill
+### 5. sumeru-write 章节撰写Skill
 **定位**：内容生成器，适用于"帮我写一章"、"续写内容"、"生成XX情节"等需求
 **核心能力**：
 - **细纲驱动生成：自动读取 chapter-outlines.json，支持单章或批量并行生成所有章节**
@@ -113,7 +203,7 @@ skills/
 - 多Agent并行批量创作，支持同时生成多章内容，效率提升5倍+，**每个Agent最多负责3个章节**
 **核心参数**：写作风格、目标字数、节奏、视角、并行模式
 
-### 5. sumeru-review 逻辑审查Skill
+### 6. sumeru-review 逻辑审查Skill
 **定位**：内容质检官，适用于"检查有没有bug"、"时间线对不对"、"有没有剧情矛盾"等需求
 **核心能力**：
 - **三阶段审查修复流程**：全局审查→章节细节审查（Agent Team并行，遵循3章/Agent全局约束）→轻量修复+严重问题自动修订大纲并重写章节（底线问题零遗漏核验）
@@ -124,7 +214,7 @@ skills/
 - 伏笔追踪：记录所有伏笔位置、类型、回收状态，提供回收建议
 **核心参数**：审查范围、检查类型、字数检查
 
-### 6. sumeru-polish 内容润色Skill
+### 7. sumeru-polish 内容润色Skill
 **定位**：内容优化器，适用于"帮我润色一下"、"改改文笔"、"优化节奏"等需求
 **核心能力**：
 - 3级润色级别：轻度（优化表达）→中度（重构结构）→深度（逐字打磨）
@@ -132,7 +222,7 @@ skills/
 - 针对性优化：节奏收紧、爽点强化、对话优化、文笔提升、悬念增强
 **核心参数**：润色级别、目标风格、优化重点
 
-### 7. sumeru-finalize 完稿校验Skill
+### 8. sumeru-finalize 完稿校验Skill
 **定位**：发布前最后把关，适用于"完稿检查"、"导出平台格式"、"批量处理"等需求
 **核心能力**：
 - 错误检查：错别字、标点、语法错误检测与修正
@@ -152,25 +242,40 @@ skills/
 .sumeru/
 ├── session/          # 会话全局配置与状态
 ├── topic/            # 选题阶段中间数据
+├── deconstruct/      # 拆书阶段中间数据
+│   ├── structure.json        # 逐章结构统计
+│   └── derivative-check.json # 拆书报告原创性检查
 ├── outline/          # 大纲阶段中间数据
-│   └── chapter-outlines.json  # **完整章节细纲（write阶段的输入）**
+│   ├── chapter-plan.json      # 章节/分卷规划（plan-chapters.py 输出）
+│   ├── chapter-outlines.json  # **完整章节细纲（write阶段的输入）**
+│   └── compliance-check.json  # 命名合规检查结果（passed=true 才能写作）
 ├── write/            # 创作阶段中间数据
-│   └── original/     # 原始章节备份（review/polish修改前自动备份）
+│   ├── original/     # 原始章节备份（review/polish修改前自动备份）
+│   └── chapter-check.json     # 章节结构/命名校验（check-chapters.py 输出）
 ├── review/           # 审查阶段中间数据
-│   └── fix-plan.json # 修复执行记录（记录所有已执行的修复操作详情）
+│   ├── fix-plan.json # 修复执行记录（记录所有已执行的修复操作详情）
+│   ├── timeline.json # 结构化时间线（schema 见 references/timeline-schema.md）
+│   ├── timeline-check.json # 时间线机器校验结果
+│   └── word-count.json # 字数统计（chapter-word-counter.py 输出）
 ├── polish/           # 润色阶段中间数据
 └── finalize/         # 完稿阶段中间数据
+    ├── stats.json    # 统计与导出结果
+    └── report.md     # 完稿校验报告
 ```
 
 ### 用户可见输出（当前工作目录）
 ```
 ./
-├── 选题策划报告.md    # topic阶段输出
-├── 小说大纲_*.md      # outline阶段输出
-├── chapters/         # write阶段输出的章节文件
-├── 剧情审查报告.md    # review阶段输出
-├── publish/          # finalize阶段导出的发布格式文件
-└── output/           # worldbuilder全流程输出目录
+├── 选题策划报告.md      # topic阶段输出
+├── 拆书数据报告.md      # deconstruct阶段输出（机械统计）
+├── 拆书报告_*.md        # deconstruct阶段输出（结构拆解）
+├── 小说大纲_*.md        # outline阶段输出（世界观/剧情/章节细纲）
+├── chapters/           # write阶段输出的章节文件（001-标题.md）
+├── 剧情审查报告.md      # review阶段输出
+├── 完稿校验报告.md      # finalize阶段输出
+├── publish/            # finalize阶段导出的发布格式文件（按平台分目录）
+│   └── {platform}/     # full.md / full.txt / full.html / book.epub / chapters/
+└── output/             # worldbuilder全流程输出目录
 ```
 
 ## Skill开发规范
@@ -182,6 +287,8 @@ skills/
    - `references/`目录（按需创建）：存放领域知识与模板
 3. Skill描述中必须包含触发关键词与排除规则，确保被正确识别调用
 4. 命令参数采用自然语言描述，避免命令行风格（如 `--param`），保持用户友好
+5. 涉及统计、校验、导出的能力必须提供 `scripts/` 脚本，并在 `tests/test_tools.py` 补测试用例，禁止只写“请模型自行计算”
+6. 新增题材参考库时，只提供构词法/结构模板，不提供成品知名角色名；必须与 `skills/sumeru-outline/references/ip-blocklist.md` 对齐
 
 ## 边界与权限说明
 ### ✅ 可直接执行
@@ -214,9 +321,23 @@ skills/
    - **Skill内引用方式**：各Skill中使用"⚠️ 遵循全局约束：每个子Agent最多负责3个章节（详见 AGENTS.md '子Agent并行处理规则'）"格式引用，不再完整重述
 6. **自动备份规则（全局强制约束）**：review修复和polish润色直接修改 `chapters/` 目录中的文件，修改前自动备份原始章节到 `.sumeru/write/original/`，确保可回滚。无需用户手动确认应用步骤。
 7. **Skill间解耦规则**：禁止下游Skill直接调用上游Skill（如review不得调用sumeru-write）。review发现严重问题时，由自身使用子Agent（遵循3章/Agent约束）自动修订大纲并重写对应章节，修复结果直接修改 chapters/（自动备份到 .sumeru/write/original/），全部修复操作记录到 fix-plan.json，供worldbuilder编排确认和用户查阅。
+8. **拆书不抄书规则（全局强制约束）**：`sumeru-deconstruct` 只输出结构模板、节奏参数与功能位配置，不输出原文段落、原作专名或换名后的角色关系图。拆书报告必须通过 `check-derivative.py`（最长连续重合 ≤12 字、原作专名零命中）才能交付或传给下游 Skill。
+9. **阶段门禁规则**：阶段交接必须通过可执行校验，不允许“看起来差不多”就进入下一阶段。
+   - deconstruct → 交付/下游：`derivative-check.json` 的 `passed` 为 `true`
+   - outline → write：`plan-chapters.py --validate` 通过，且 `compliance-check.json` 的 `passed` 为 `true`
+   - write → review：`check-chapters.py` 无 error（缺章、命名错误、空章均为 error）
+   - review → polish：`bottom-line-checklist.json` 中无「待修复」项，且 `validate-timeline.py` 无 error
+   - polish → finalize：`chapters/` 中无 TODO/占位符
+   - finalize → 交付：`build.py` 无 error，且所有目标平台目录生成成功
 
 ## 核心文件索引
-- `AGENTS.md` - 本文件，全局规则与命令说明
+- `AGENTS.md` / `CLAUDE.md` - 全局规则与命令说明（软链接指向同一文件）
+- `README.md` - 面向用户的项目介绍与使用示例
 - `skills/*/SKILL.md` - 各Skill的详细使用文档与参数说明
 - `skills/*/scripts/` - Skill专属工具脚本（按需存在）
 - `skills/*/references/` - Skill专属参考资料（按需存在）
+- `skills/sumeru-outline/references/ip-blocklist.md` - **IP/合规唯一黑名单源**
+- `skills/sumeru-review/references/timeline-schema.md` - 时间线数据结构与校验规则
+- `skills/sumeru-deconstruct/references/deconstruct-framework.md` - 拆书十二维与报告模板
+- `tests/test_tools.py` - 脚本回归测试
+- `LICENSE` - MIT 许可证

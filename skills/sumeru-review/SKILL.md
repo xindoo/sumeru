@@ -1,6 +1,6 @@
 ---
 name: sumeru-review
-description: 小说逻辑/剧情审查，适用于用户说"帮我检查下小说有没有bug"、"看看时间线有没有矛盾"、"人物有没有OOC"、"找剧情前后冲突"、"梳理伏笔有没有回收"、"检查小说剧情合理性"、"看看有没有剧情漏洞"、"人物行为不符合性格"、"检查时间线对不对"、"找小说前后矛盾的地方"、"帮我梳理所有伏笔"、"小说剧情bug检查"、"逻辑漏洞排查"等需求，检测时间线冲突、逻辑漏洞、人物OOC、伏笔遗漏等问题，**执行字数检查确保章节字数达标**，**生成详细问题清单并自动修复所有问题，修复结果直接修改 chapters/ 目录，修改前自动备份到 .sumeru/write/original/**，**发现严重问题时自动修订大纲并重写对应章节**，**底线问题零遗漏机制确保所有致命问题必须解决**，**批量审查时使用子Agent并行处理，每个Agent最多负责3个章节**
+description: 小说逻辑/剧情审查，适用于用户说"帮我检查下小说有没有bug"、"看看时间线有没有矛盾"、"人物有没有OOC"、"找剧情前后冲突"、"梳理伏笔有没有回收"、"检查小说剧情合理性"、"看看有没有剧情漏洞"、"人物行为不符合性格"、"检查时间线对不对"、"找小说前后矛盾的地方"、"帮我梳理所有伏笔"、"小说剧情bug检查"、"逻辑漏洞排查"等需求，执行全局+逐章+修复三阶段审查，时间线先结构化抽取再做机器校验（时序/年龄/持续时长/因果引用），校验设定、OOC、字数与信息边界，自动修订大纲并重写严重问题章节，底线问题零遗漏，批量时每个子Agent最多负责3章
 type: skill
 ---
 
@@ -13,11 +13,28 @@ type: skill
 
 #### 三阶段审查修复流程设计
 
+> 前置步骤：审查开始前先跑结构校验，避免在错位数据上做审查：
+> ```bash
+> python3 skills/sumeru-write/scripts/check-chapters.py --chapters chapters --outline .sumeru/outline/chapter-outlines.json
+> python3 skills/sumeru-review/scripts/chapter-word-counter.py --dir chapters
+> ```
+> `check-chapters.py` 存在 error（缺章/命名错误/空章）时，先修复结构，再进入内容审查。
+
 为确保审查全面性和修复质量，本 skill 采用三阶段审查修复流程：
 
 **第一阶段：全局信息审查**
 - 加载完整大纲和章节细纲，建立全局审查基准
 - 分析整体剧情脉络和时间线结构
+- **结构化时间线抽取**：按 `references/timeline-schema.md` 把关键事件写入 `.sumeru/review/timeline.json`
+  - 每条事件必须能定位到章节；相对时间（三天后/半月后）换算成 `dayOffset` 或日期
+  - 回忆事件标 `type: "flashback"`；并行事件标 `parallel: true`
+  - 不确定的日期留空，不要编造
+- **时间线机器校验（必跑）**：
+  ```bash
+  python3 skills/sumeru-review/scripts/validate-timeline.py \
+    --timeline .sumeru/review/timeline.json --chapters chapters
+  ```
+  校验时序倒流、事件区间重叠、年龄与生日不一致、因果引用指向后续章节、季节冲突、无时间锚点、长跨度跳跃。存在 error 时必须修复或标记「需人工干预」，才能继续。
 - 审查全局设定一致性（世界观、力量体系、规则设定）
 - 识别主线支线关联问题和伏笔回收情况
 - 检查整体冲突点分布和节奏把控
@@ -110,7 +127,7 @@ type: skill
 ### 输出内容
 **第一阶段：全局审查输出**
 - **全局剧情脉络分析报告**：主线、支线、伏笔的整体分布图
-- **完整故事时间线图谱**：按时间轴整理的关键事件序列
+- **完整故事时间线图谱**：结构化事件序列（`timeline.json`）+ 机器校验结果（`timeline-check.json`）
 - **设定一致性检查报告**：世界观、力量体系、规则设定的统一性分析
 - **冲突点分布评估**：冲突强度、分布密度、节奏把控评估
 - **全局伏笔回收状态表**：所有未回收伏笔清单与回收方向建议
@@ -146,7 +163,8 @@ type: skill
 **中间数据（仅系统内部使用，存于`.sumeru/review/`目录）**：
 **第一阶段：全局审查数据**
 - `global-issues.json`：全局问题清单，包含时间线、设定、伏笔等问题
-- `timeline.json`：完整时间线图谱，按时间轴排列的关键事件序列
+- `timeline.json`：结构化时间线（字段规范见 `references/timeline-schema.md`）
+- `timeline-check.json` / `timeline-check.md`：时间线机器校验结果（时序/年龄/区间/因果）
 - `plot-map.json`：剧情脉络图，显示主线、支线、冲突点分布
 - `foreshadowing-tracking.json`：伏笔追踪表，包含所有伏笔的位置、内容、回收状态
 - `coherence-score.json`：剧情连贯性评分明细
@@ -216,3 +234,30 @@ sumeru-write 章节
 - 支持增量审查，新增章节时基于已有审查结果只检测新增内容
 - 修复完成后可再次调用自动验证问题是否解决
 - 字数填充记录可用于后续章节的字数参考
+
+### 字数统计命令
+
+```bash
+# 默认区间 3000-5000（起点）
+python3 skills/sumeru-review/scripts/chapter-word-counter.py --dir chapters
+
+# 番茄：2000-3000
+python3 skills/sumeru-review/scripts/chapter-word-counter.py --dir chapters --min 2000 --max 3000
+
+# 自定义警告阈值
+python3 skills/sumeru-review/scripts/chapter-word-counter.py --dir chapters --warn-min 1500 --warn-max 7000
+```
+
+报告输出到 `.sumeru/review/word-count.json` 与 `word-count.md`。
+
+### 产物与验收标准（Definition of Done）
+
+| 验收项 | 标准 | 校验方式 |
+|--------|------|----------|
+| 结构完整 | 无缺章、错名、空章 | `check-chapters.py` 无 error |
+| 全局审查完成 | 时间线/设定/伏笔三张表齐全 | 检查 `.sumeru/review/` |
+| 时间线可验算 | 时序、年龄、区间、因果引用均无 error | `validate-timeline.py` 退出码 0 |
+| 问题已闭环 | `fix-plan.json` 中无「待修复」 | 检查 `fix-plan.json` |
+| 底线清零 | 六类底线问题均已「已解决」或「需人工干预」 | 检查 `bottom-line-checklist.json` |
+| 字数达标 | 按平台区间，不足的已填充 | `chapter-word-counter.py` |
+| 修复文件 | 直接修改 `chapters/`，已备份 `original/` | 抽查备份目录 |

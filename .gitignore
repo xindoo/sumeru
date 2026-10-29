@@ -2,3 +2,19 @@
 .sumeru/
 .claude/
 .omo/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# 用户生成的小说内容：禁止提交到仓库
+选题策划报告.md
+拆书数据报告.md
+拆书报告_*.md
+小说大纲_*.md
+剧情审查报告.md
+完稿校验报告.md
+chapters/
+publish/
+output/

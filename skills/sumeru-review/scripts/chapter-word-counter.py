@@ -15,7 +15,7 @@ from typing import Dict, List, Tuple
 
 # 配置参数
 DEFAULT_CHAPTER_PATTERN = r"\d{3,4}-.*\.md"    # 项目章节命名规范：001-标题.md（三位零填充，兼容四位的1000+章）
-DEFAULT_WORD_RANGE = (3000, 5000)  # 默认理想章节字数范围：3000-5000字（与sumeru-write默认产出对齐）
+DEFAULT_WORD_RANGE = (3000, 5000)  # 默认理想区间：起点口径 3000-5000 字（其他平台用 --min/--max 覆盖）
 WARNING_RANGE = (2000, 6000)        # 警告范围：小于2000或大于6000字触发警告
 
 

@@ -1,0 +1,41 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Check skill metadata
+        run: |
+          python - <<'PY'
+          import pathlib, sys
+          errors = []
+          for skill in sorted(pathlib.Path("skills").glob("*/SKILL.md")):
+              text = skill.read_text(encoding="utf-8")
+              if not text.startswith("---\n"):
+                  errors.append(f"{skill}: 缺少 frontmatter")
+                  continue
+              front = text.split("---", 2)[1]
+              for key in ("name:", "description:", "type:"):
+                  if key not in front:
+                      errors.append(f"{skill}: 缺少 {key}")
+          if errors:
+              print("\n".join(errors))
+              sys.exit(1)
+          print(f"OK: {len(list(pathlib.Path('skills').glob('*/SKILL.md')))} skills")
+          PY
