@@ -7,7 +7,7 @@
 - Skill框架：Claude Code Skill系统（兼容OpenCode superpowers体系）
 - 运行环境：macOS / Linux zsh
 - 依赖环境：Python 3.11+、Node.js 20.x（部分工具脚本依赖）
-- 当前版本：v0.1.0
+- 当前版本：v0.2.0
 
 ## 核心架构结构
 ```
